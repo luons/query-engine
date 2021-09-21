@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.luons.engine.cube.mapper.CommonMysqlMapper">
+
+  <insert id="insert">
+    UPSERT INTO ${table}
+    <foreach collection="data.keySet()" open="(" close=")" item="d" separator=",">
+      ${d}
+    </foreach>
+    VALUES
+    <foreach collection="data.values()" open="(" close=")" item="i" separator=",">
+      #{i}
+    </foreach>
+  </insert>
+
+  <delete id="delete">
+    ${sql}
+  </delete>
+
+  <select id="queryCount" resultType="java.lang.Long">
+    ${sql}
+  </select>
+
+  <select id="query" resultType="com.ninebot.bigdata.query.core.common.CubeMap">
+    ${sql}
+  </select>
+
+</mapper>

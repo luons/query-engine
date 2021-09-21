@@ -1,0 +1,7 @@
+com\luons\engine\common\PageBean.class
+com\luons\engine\common\UserLanguage.class
+com\luons\engine\common\MessageWrapper.class
+com\luons\engine\utils\HttpRequestUtil.class
+com\luons\engine\utils\JacksonUtils.class
+com\luons\engine\utils\CommonUtils.class
+com\luons\engine\common\ServiceException.class
