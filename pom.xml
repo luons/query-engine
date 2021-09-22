@@ -14,12 +14,13 @@
     <module>engine-core</module>
     <module>engine-common</module>
     <module>engine-cube</module>
+    <module>engine-demo</module>
   </modules>
 
   <properties>
     <slf4j.version>1.7.26</slf4j.version>
-    <jackson.version>2.9.8</jackson.version>
-    <lombok.version>1.18.20</lombok.version>
+    <jackson.version>2.11.1</jackson.version>
+    <lombok.version>1.18.12</lombok.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
