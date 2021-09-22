@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>query-engine</artifactId>
-    <groupId>com.luons.engine</groupId>
+    <groupId>io.github.luons.engine</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
@@ -15,7 +15,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.luons.engine</groupId>
+      <groupId>io.github.luons.engine</groupId>
       <artifactId>engine-core</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>

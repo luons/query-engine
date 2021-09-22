@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>query-engine</artifactId>
-    <groupId>com.luons.engine</groupId>
+    <groupId>io.github.luons.engine</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
@@ -14,7 +14,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.luons.engine</groupId>
+      <groupId>io.github.luons.engine</groupId>
       <artifactId>engine-cube</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
