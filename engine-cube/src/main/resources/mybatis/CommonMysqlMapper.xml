@@ -21,7 +21,7 @@
     ${sql}
   </select>
 
-  <select id="query" resultType="com.ninebot.bigdata.query.core.common.CubeMap">
+  <select id="query" resultType="com.luons.engine.core.cube.CubeMap">
     ${sql}
   </select>
 

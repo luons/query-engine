@@ -1,6 +1,6 @@
 package com.luons.engine.cube;
 
-import com.ninebot.bigdata.query.core.common.AbstractCube;
+import com.luons.engine.core.cube.AbstractCube;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

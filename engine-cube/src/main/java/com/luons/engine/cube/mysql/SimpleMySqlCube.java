@@ -1,12 +1,12 @@
 package com.luons.engine.cube.mysql;
 
 import com.google.common.base.Preconditions;
-import com.ninebot.bigdata.query.common.Pageable;
-import com.ninebot.bigdata.query.core.common.*;
+import com.luons.engine.common.Pageable;
+import com.luons.engine.core.cube.CubeMap;
+import com.luons.engine.core.spi.Query;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,12 +46,12 @@ public class SimpleMySqlCube extends AbstractMySqlCube {
         }
         // pageable 1. 查询count 2. 分页查询
         String limits = queryToPageable(query);
-        Pageable pageable = query.getPageable();
+        Pageable<?> pageable = query.getPageable();
         if (StringUtils.isNotBlank(limits) && StringUtils.isBlank(groupBy)) {
             sqlBuilder.append(limits);
             Long count = commonMysqlMapper.queryCount(countBuilder.toString(), param);
-            pageable.setCount(count);
-            int querySize = (pageable.getIndex() - 1) * pageable.getSize();
+            pageable.setTotalCount(count);
+            int querySize = (pageable.getPageIndex() - 1) * pageable.getPageSize();
             if (count != null && count - querySize < 0) {
                 return null;
             }

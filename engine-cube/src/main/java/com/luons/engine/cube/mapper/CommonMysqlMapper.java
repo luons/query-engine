@@ -1,6 +1,6 @@
 package com.luons.engine.cube.mapper;
 
-import com.ninebot.bigdata.query.core.common.CubeMap;
+import com.luons.engine.core.cube.CubeMap;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;

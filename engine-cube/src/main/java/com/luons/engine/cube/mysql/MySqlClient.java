@@ -1,8 +1,8 @@
 package com.luons.engine.cube.mysql;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.ninebot.bigdata.query.core.Client;
-import com.ninebot.bigdata.query.core.ClientFactory;
+import com.luons.engine.core.Client;
+import com.luons.engine.core.ClientFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 

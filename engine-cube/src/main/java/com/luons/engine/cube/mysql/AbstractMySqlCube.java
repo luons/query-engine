@@ -1,9 +1,9 @@
 package com.luons.engine.cube.mysql;
 
+import com.luons.engine.common.Pageable;
+import com.luons.engine.core.cube.AbstractSqlCube;
+import com.luons.engine.core.spi.Query;
 import com.luons.engine.cube.mapper.CommonMysqlMapper;
-import com.ninebot.bigdata.query.common.Pageable;
-import com.ninebot.bigdata.query.core.common.AbstractSqlCube;
-import com.ninebot.bigdata.query.core.common.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractMySqlCube extends AbstractSqlCube {
@@ -18,11 +18,11 @@ public abstract class AbstractMySqlCube extends AbstractSqlCube {
             return "";
         }
         Pageable pageable = query.getPageable();
-        if (pageable == null || pageable.getSize() == null) {
+        if (pageable == null || pageable.getTotalCount() == null) {
             return "";
         }
-        int pIndex = pageable.getIndex() == null ? 1 : pageable.getIndex();
-        int pSize = pageable.getSize();
+        int pIndex = pageable.getPageIndex() == null ? 1 : pageable.getPageIndex();
+        int pSize = pageable.getPageSize();
         if (pIndex < 1) {
             pIndex = 1;
         }

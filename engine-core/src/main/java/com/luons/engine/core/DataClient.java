@@ -3,7 +3,7 @@ package com.luons.engine.core;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.luons.engine.core.utils.DateUtils;
-import com.ninebot.bigdata.query.utils.JacksonUtils;
+import com.luons.engine.utils.JacksonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;

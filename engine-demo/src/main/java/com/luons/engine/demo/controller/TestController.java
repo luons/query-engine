@@ -1,10 +1,10 @@
 package com.luons.engine.demo.controller;
 
-import com.ninebot.bigdata.query.core.common.AbstractCube;
-import com.ninebot.bigdata.query.core.common.Query;
-import com.ninebot.bigdata.query.core.http.ResponseWrapper;
-import com.ninebot.bigdata.query.cube.CubeRegistry;
-import com.ninebot.bigdata.query.utils.JacksonUtils;
+import com.luons.engine.core.ResponseWrapper;
+import com.luons.engine.core.cube.AbstractCube;
+import com.luons.engine.core.spi.Query;
+import com.luons.engine.cube.CubeRegistry;
+import com.luons.engine.utils.JacksonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

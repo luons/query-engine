@@ -1,11 +1,11 @@
 package com.luons.engine.demo;
 
-import com.ninebot.bigdata.query.core.common.AbstractCube;
-import com.ninebot.bigdata.query.core.common.Column;
-import com.ninebot.bigdata.query.core.common.Dimension;
-import com.ninebot.bigdata.query.core.common.Measure;
-import com.ninebot.bigdata.query.cube.CubeRegistry;
-import com.ninebot.bigdata.query.cube.mysql.SimpleMySqlCube;
+import com.luons.engine.core.cube.AbstractCube;
+import com.luons.engine.core.spi.Column;
+import com.luons.engine.core.spi.Dimension;
+import com.luons.engine.core.spi.Measure;
+import com.luons.engine.cube.CubeRegistry;
+import com.luons.engine.cube.mysql.SimpleMySqlCube;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;

@@ -3,7 +3,7 @@ package com.luons.engine.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.luons.engine.core.spi.AuthorizationProvider;
 import com.luons.engine.core.utils.SslUtils;
-import com.ninebot.bigdata.query.utils.JacksonUtils;
+import com.luons.engine.utils.JacksonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequestInterceptor;
@@ -121,6 +121,7 @@ abstract public class ClientFactory implements Closeable {
         httpClient = clientBuilder.build();
     }
 
+    @SuppressWarnings("unchecked")
     protected static abstract class Builder<T extends Builder<?>> {
         protected URI baseUrl;
         protected String uri;

@@ -2,9 +2,8 @@ package com.luons.engine.demo;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.ninebot.bigdata.query.cube.SqlMonitorInterceptor;
-import com.ninebot.bigdata.query.cube.mapper.CommonMysqlMapper;
-import org.apache.ibatis.plugin.Interceptor;
+import com.luons.engine.cube.SqlMonitorInterceptor;
+import com.luons.engine.cube.mapper.CommonMysqlMapper;
 import org.apache.ibatis.session.SqlSession;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -51,7 +50,7 @@ public class CubeContext {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         Resource[] mapperLocations = resolver.getResources("classpath:mybatis/**/*.xml");
         sqlSessionFactoryBean.setMapperLocations(mapperLocations);
-        sqlSessionFactoryBean.setPlugins(new Interceptor[]{new SqlMonitorInterceptor()});
+        sqlSessionFactoryBean.setPlugins(new SqlMonitorInterceptor());
         return sqlSessionFactoryBean;
     }
 

@@ -27,7 +27,7 @@ public class JacksonUtils {
     /**
      * 创建新的 ObjectMapper
      */
-    private static ObjectMapper newMapper() {
+    public static ObjectMapper newMapper() {
         return new ObjectMapper()
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);

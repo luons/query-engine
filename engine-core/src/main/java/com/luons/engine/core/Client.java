@@ -9,7 +9,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.luons.engine.core.exception.EngineException;
 import com.luons.engine.core.spi.AuthorizationProvider;
-import com.ninebot.bigdata.query.utils.HttpUtil;
+import com.luons.engine.utils.HttpRequestUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
@@ -78,23 +78,23 @@ public abstract class Client {
     }
 
     protected static boolean isInformational(HttpResponse response) {
-        return HttpUtil.isInformational(response.getStatusLine().getStatusCode());
+        return HttpRequestUtil.isInformational(response.getStatusLine().getStatusCode());
     }
 
     protected static boolean isSuccessful(HttpResponse response) {
-        return HttpUtil.isSuccessful(response.getStatusLine().getStatusCode());
+        return HttpRequestUtil.isSuccessful(response.getStatusLine().getStatusCode());
     }
 
     protected static boolean isRedirection(HttpResponse response) {
-        return HttpUtil.isRedirection(response.getStatusLine().getStatusCode());
+        return HttpRequestUtil.isRedirection(response.getStatusLine().getStatusCode());
     }
 
     protected static boolean isClientError(HttpResponse response) {
-        return HttpUtil.isClientError(response.getStatusLine().getStatusCode());
+        return HttpRequestUtil.isClientError(response.getStatusLine().getStatusCode());
     }
 
     protected static boolean isServerError(HttpResponse response) {
-        return HttpUtil.isServerError(response.getStatusLine().getStatusCode());
+        return HttpRequestUtil.isServerError(response.getStatusLine().getStatusCode());
     }
 
     public Request<HttpGet> get(Object... paths) {

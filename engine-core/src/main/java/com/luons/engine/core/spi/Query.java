@@ -1,8 +1,8 @@
 package com.luons.engine.core.spi;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.luons.engine.common.Pageable;
 import com.luons.engine.core.filter.FilterGroup;
-import com.ninebot.bigdata.query.common.Pageable;
 import lombok.Data;
 
 import java.io.Serializable;

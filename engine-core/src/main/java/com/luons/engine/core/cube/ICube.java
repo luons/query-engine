@@ -1,6 +1,7 @@
 package com.luons.engine.core.cube;
 
-import javax.management.Query;
+import com.luons.engine.core.spi.Query;
+
 import java.util.List;
 import java.util.Map;
 

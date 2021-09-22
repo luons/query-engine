@@ -1,6 +1,6 @@
 package com.luons.engine.cube.mysql;
 
-import com.ninebot.bigdata.query.core.ClientFactory;
+import com.luons.engine.core.ClientFactory;
 
 public class MySqlClientFactory extends ClientFactory {
 
