@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.luons.engine.cube.mapper.CommonMysqlMapper">
+<mapper namespace="io.github.luons.engine.cube.mapper.CommonMysqlMapper">
 
   <insert id="insert">
     UPSERT INTO ${table}
@@ -21,7 +21,7 @@
     ${sql}
   </select>
 
-  <select id="query" resultType="com.luons.engine.core.cube.CubeMap">
+  <select id="query" resultType="io.github.luons.engine.core.cube.CubeMap">
     ${sql}
   </select>
 
