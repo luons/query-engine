@@ -48,12 +48,11 @@ public class EsClientFactory extends ClientFactory {
         }
 
         public EsClientFactory build() {
-            Preconditions.checkState(baseUrl != null, "Base URL is required");
-
+            Preconditions.checkState((baseUrl != null), ("Base URL is required"));
             maxConnections(1000).maxConnectionsPerRoute(1000).connectTimeout(1000L);
             //EsClientFactory esClientFactory = new EsClientFactory(this, baseUrl);
             EsClientFactory esClientFactory =
-                    new EsClientFactory(this, URI.create(String.format(baseUrl.toString())));
+                    new EsClientFactory(this, URI.create(baseUrl.toString()));
             esClientFactory.setAuthorization(authorization);
             return esClientFactory;
         }
@@ -79,7 +78,7 @@ public class EsClientFactory extends ClientFactory {
         Map<String, String> map = new HashMap<>();
         List<Map<String, Object>> mapAggs2 = esClient.queryDslForAggs("app_client_api_log-*", "", "{\"aggs\":{\"time\":{\"date_histogram\":{\"field\":\"@timestamp\",\"calendar_interval\":\"1d\",\"time_zone\":\"Asia/Shanghai\",\"min_doc_count\":1},\"aggs\":{\"time_cost\":{\"range\":{\"field\":\"time_cost\",\"ranges\":[{\"from\":0,\"to\":1000},{\"from\":1000,\"to\":100000}],\"keyed\":true}}}}},\"size\":0,\"docvalue_fields\":[{\"field\":\"@timestamp\",\"format\":\"date_time\"}],\"query\":{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"match_phrase\":{\"host\":\"api5-bj.ninebot.cn\"}},{\"match_phrase\":{\"host\":\"api5-bj.ninebot.com\"}}],\"minimum_should_match\":1}},{\"range\":{\"@timestamp\":{\"format\":\"epoch_millis\",\"gte\":1603036800000,\"lt\":1603123200000}}}]}}}");
 
-        System.out.println(JacksonUtils.toJsonString(mapAggs2));
+        System.out.println(JacksonUtils.toJson(mapAggs2));
         List<Map<String, Object>> mapAv = esClient.queryDsl("s2_burying_point_log-*", "", "{\"query\":{\"bool\":{\"must\":[{\"term\":{\"$distinct_id\":\"EVT7-10\"}},{\"range\":{\"$time\":{\"gte\":1591774057000}}},{\"range\":{\"$time\":{\"lt\":1591774242000}}},{\"exists\":{\"field\":\"properties.error_code\"}},{\"term\":{\"properties.cloud_ssl\":\"ssl://120.92.209.166:8883\"}}]}},\"_source\":{\"includes\":[\"$distinct_id\",\"$time\",\"properties.error_code\",\"properties.error_info\",\"$event\"]}}", map);
         List<Map<String, Object>> mapAggs1 = esClient.queryDslForAggs("app_steeldust_mysql_binlog-*", "", "{\"aggs\":{\"data_name\":{\"range\":{\"field\":\"bat1_temp1\",\"ranges\":[{\"from\":0,\"to\":10},{\"from\":10,\"to\":20},{\"from\":20,\"to\":30},{\"from\":30,\"to\":40},{\"from\":40,\"to\":50},{\"from\":50,\"to\":60},{\"from\":60,\"to\":70},{\"from\":70}],\"keyed\":true}}},\"size\":0,\"docvalue_fields\":[{\"field\":\"@timestamp\",\"format\":\"date_time\"}],\"query\":{\"bool\":{\"must\":[{\"match_phrase\":{\"TABLE_NAME\":{\"query\":\"vehicle_info\"}}},{\"range\":{\"@timestamp\":{\"gte\":1589198765356,\"lte\":1589285165356,\"format\":\"epoch_millis\"}}},{\"match_phrase\":{\"TABLE_NAME\":{\"query\":\"vehicle_info\"}}}]}}}");
         List<Map<String, Object>> maps = esClient.queryDsl("s2_burying_point_log-*", "", "{\"query\":{\"bool\":{\"must\":[{\"term\":{\"$distinct_id\":\"EVT6-2-10\"}},{\"range\":{\"$time\":{\"gte\":1588852530000}}},{\"range\":{\"$time\":{\"lt\":1588852560000}}}]}}}");
@@ -88,22 +87,22 @@ public class EsClientFactory extends ClientFactory {
             return;
         }
 
-        System.out.println(JacksonUtils.toJsonString(maps));
+        System.out.println(JacksonUtils.toJson(maps));
 
         Map<String, Object> stringObjectMap = maps.get(0);
         System.out.println(stringObjectMap.get("title"));
         System.out.println(stringObjectMap.get("price"));
 
-        String _id = (String) stringObjectMap.get("_id");
-        System.out.println(_id);
+        String id = (String) stringObjectMap.get("_id");
+        System.out.println(id);
 
         stringObjectMap.remove("_id");
         stringObjectMap.remove("_score");
         stringObjectMap.put("price", 90);
-        esClient.setObject("test_index", "test_type", _id, stringObjectMap);
+        esClient.insertObject("test_index", "test_type", id, stringObjectMap);
 
-        Map<String, Object> object = esClient.getObject("test_index", "test_type", _id);
-        System.out.println(JacksonUtils.toJsonString(object));
+        Map<String, Object> object = esClient.getObject("test_index", "test_type", id);
+        System.out.println(JacksonUtils.toJson(object));
 
     }
 }

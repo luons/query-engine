@@ -23,10 +23,10 @@ public class TestController {
     @RequestMapping("/engine/query")
     public ResponseWrapper<List<Map<String, Object>>> queryMysqlIndexStats(@RequestBody Query query) {
         ResponseWrapper<List<Map<String, Object>>> messageWrapper = new ResponseWrapper<>();
-        log.debug(JacksonUtils.toJsonString(query));
+        log.debug(JacksonUtils.toJson(query));
         AbstractCube cube = CubeRegistry.get("mysqlIndexStats");
         List<Map<String, Object>> list = cube.query(query);
-        log.debug(JacksonUtils.toJsonString(list));
+        log.debug(JacksonUtils.toJson(list));
 
         messageWrapper.setData(list);
         return messageWrapper;

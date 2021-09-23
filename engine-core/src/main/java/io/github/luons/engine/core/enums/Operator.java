@@ -4,6 +4,7 @@ public enum Operator {
     /**
      * Operator
      */
+    DEFAULT(" ="),
     EQ(" ="),
     NE(" !="),
     LT(" <"),

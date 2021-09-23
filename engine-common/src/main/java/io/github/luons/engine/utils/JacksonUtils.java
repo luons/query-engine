@@ -36,7 +36,7 @@ public class JacksonUtils {
     /**
      * 对象转为json字符串
      */
-    public static <T> String toJsonString(T obj) {
+    public static <T> String toJson(T obj) {
         try {
             return MAPPER.writeValueAsString(obj);
         } catch (JsonProcessingException e) {

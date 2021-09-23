@@ -275,37 +275,40 @@ public abstract class AbstractSqlCube extends AbstractCube implements IMeasureMi
             stringBuilder.append(" ").append(simpleFilter.getName());
         }
         switch (simpleFilter.getOperator()) {
-            case Operator.EQ:
+            case EQ:
                 stringBuilder.append(Operator.EQ.getExpInSql());
                 break;
-            case Operator.NE:
+            case NE:
                 stringBuilder.append(Operator.NE.getExpInSql());
                 break;
-            case Operator.LT:
+            case LT:
                 stringBuilder.append(Operator.LT.getExpInSql());
                 break;
-            case Operator.GT:
+            case GT:
                 stringBuilder.append(Operator.GT.getExpInSql());
                 break;
-            case Operator.LE:
+            case LE:
                 stringBuilder.append(Operator.LE.getExpInSql());
                 break;
-            case Operator.GE:
+            case GE:
                 stringBuilder.append(Operator.GE.getExpInSql());
                 break;
-            case Operator.IN:
+            case IN:
                 stringBuilder.append(Operator.IN.getExpInSql());
                 break;
-            case Operator.NIN:
+            case NIN:
                 stringBuilder.append(Operator.NIN.getExpInSql());
                 break;
-            case Operator.LIKE:
+            case LIKE:
                 stringBuilder.append(Operator.LIKE.getExpInSql());
+                break;
+            default:
+                stringBuilder.append(Operator.DEFAULT.getExpInSql());
                 break;
         }
         switch (simpleFilter.getOperator()) {
-            case Operator.IN:
-            case Operator.NIN:
+            case IN:
+            case NIN:
                 if (!(simpleFilter.getValue() instanceof Object[] || simpleFilter.getValue() instanceof List)) {
                     throw new IllegalArgumentException("param type for IN and NIN must be Object[] or List");
                 } else {

@@ -90,7 +90,7 @@ public class DataClient extends Client {
             request.addParam(("metric_ids"), joiner.join(metricIds));
         }
         Map<String, Object> execute = getExecuteByRequest(request);
-        log.debug(JacksonUtils.toJsonString(execute));
+        log.debug(JacksonUtils.toJson(execute));
         int status = (Integer) execute.get("status");
         if (1 == status) {
             return new HashMap<>();
