@@ -15,6 +15,7 @@
     <module>engine-common</module>
     <module>engine-cube</module>
     <module>engine-demo</module>
+    <module>engine-es</module>
   </modules>
 
   <properties>

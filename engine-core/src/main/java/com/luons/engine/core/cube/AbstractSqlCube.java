@@ -35,6 +35,7 @@ public abstract class AbstractSqlCube extends AbstractCube implements IMeasureMi
     /**
      * cube search,返回结果为维度指标涉及到列的列表
      */
+    @Override
     public List<CubeMap<Object>> rawQuery(Query query) {
         validateQuery(query);
         if (!Objects.isNull(limitFilterGroup)) {
@@ -49,6 +50,7 @@ public abstract class AbstractSqlCube extends AbstractCube implements IMeasureMi
     /**
      * 查询cube数据,返回结果为根据维度指标进行计算和排序的列表
      */
+    @Override
     public List<Map<String, Object>> query(Query query) {
         List<CubeMap<Object>> rawMetrics = rawQuery(query);
         if ("ES".equals(cubeName)) {
