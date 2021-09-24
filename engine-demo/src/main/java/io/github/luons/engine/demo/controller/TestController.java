@@ -17,9 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/test")
 public class TestController {
-
-    /**
-     */
+    
     @RequestMapping("/engine/query")
     public ResponseWrapper<List<Map<String, Object>>> queryMysqlIndexStats(@RequestBody Query query) {
         ResponseWrapper<List<Map<String, Object>>> messageWrapper = new ResponseWrapper<>();
