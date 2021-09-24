@@ -23,3 +23,7 @@ target
 /logs
 /output
 /static
+
+# Ignore versionBackup
+*.versionsBackup
+*/*.versionsBackup
