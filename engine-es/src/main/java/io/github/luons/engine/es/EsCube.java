@@ -1,7 +1,6 @@
 package io.github.luons.engine.es;
 
 import com.google.common.base.Preconditions;
-import io.github.luons.engine.core.cube.AbstractCube;
 import io.github.luons.engine.core.cube.AbstractSqlCube;
 import io.github.luons.engine.core.cube.CubeMap;
 import io.github.luons.engine.core.enums.Connector;
@@ -9,7 +8,6 @@ import io.github.luons.engine.core.enums.Operator;
 import io.github.luons.engine.core.filter.Filter;
 import io.github.luons.engine.core.filter.FilterGroup;
 import io.github.luons.engine.core.filter.SimpleFilter;
-import io.github.luons.engine.core.spi.Dimension;
 import io.github.luons.engine.core.spi.Query;
 import io.github.luons.engine.utils.JacksonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -316,30 +314,16 @@ public class EsCube extends AbstractSqlCube {
     }
 
     public static void main(String[] args) {
-
-        CubeMap map = new CubeMap();
-        map.put("$distinct_id", "EVT6-2-10");
-        Dimension d = new Dimension("$distinct_id", "$distinct_id");
-        System.out.println(d.value(map));
-
-        // init cube
-        AbstractCube cube =
-                new EsCube("s2_burying_point_log")
-                        .dimension(new Dimension("robotId", "$distinct_id"))
-                        .dimension(new Dimension("event", "$event"))
-                        .dimension(new Dimension("time", "$time"))
-                        .dimension(new Dimension("device_id", "properties.$device_id"));
-
         Query query = new Query();
         FilterGroup filterGroup = new FilterGroup();
-        filterGroup.addFilter(new SimpleFilter("robotId", "EVT6-2-10"));
+        filterGroup.addFilter(new SimpleFilter("uniq_id", "12111110"));
         filterGroup.addFilter(new SimpleFilter("time", Operator.GE, 1588852530000L));
         filterGroup.addFilter(new SimpleFilter("time", Operator.LT, 1588852560000L));
         query.setFilterGroup(filterGroup);
 
         LinkedHashSet<String> set = new LinkedHashSet<>();
-        set.add("$distinct_id");
-        set.add("$event");
+        set.add("distinct_id");
+        set.add("event");
         query.setFields(set);
         System.out.println(JacksonUtils.toJson(queryToDsl(query)));
     }
