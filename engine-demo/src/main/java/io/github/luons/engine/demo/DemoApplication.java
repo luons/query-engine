@@ -18,19 +18,4 @@ public class DemoApplication {
         SpringApplication.run(DemoApplication.class, args);
     }
 
-    @Bean
-    public AbstractCube mysqlIndexStats() {
-        AbstractCube cube =
-                new SimpleMySqlCube("innodb_index_stats")
-                        .dimension(new Dimension("database_name", "database_name"))
-                        .dimension(new Dimension("table_name", "table_name"))
-                        .dimension(new Dimension("index_name", "index_name"))
-                        .dimension(new Dimension("stat_name", "stat_name"))
-                        .measure(new Measure("stat_value", new Column[]{new Column("sum(stat_value)", "statValue", true)}))
-                        .measure(new Measure("sample_size", new Column[]{new Column("sum(sample_size)", "sampleSize", true)}));
-
-        CubeRegistry.registry("mysqlIndexStats", cube);
-        return cube;
-    }
-
 }

@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class MessageWrapper<T> implements Serializable {
+public class MessageWrapper implements Serializable {
 
     /**
      * 100
@@ -64,19 +64,4 @@ public class MessageWrapper<T> implements Serializable {
     public static final int SC_GATEWAY_TIMEOUT = 504;
     public static final int SC_HTTP_VERSION_NOT_SUPPORTED = 505;
 
-    private final int code;
-
-    private String message = "success";
-
-    private T data;
-
-    public MessageWrapper() {
-        this.code = SC_OK;
-    }
-
-    public MessageWrapper(int code, String message, T data) {
-        this.code = code;
-        this.message = message;
-        this.data = data;
-    }
 }

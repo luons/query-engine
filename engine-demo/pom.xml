@@ -19,6 +19,11 @@
       <version>1.0.1.RELEASE</version>
     </dependency>
     <dependency>
+      <groupId>io.github.luons.engine</groupId>
+      <artifactId>engine-es</artifactId>
+      <version>1.0.1.RELEASE</version>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
