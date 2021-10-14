@@ -16,6 +16,8 @@ public abstract class AbstractCube implements ICube {
 
     protected String cubeName;
 
+    protected String granularity;
+
     protected FilterGroup limitFilterGroup;
 
     protected CubeMap<Dimension> dimensions = new CubeMap<>();
@@ -39,6 +41,11 @@ public abstract class AbstractCube implements ICube {
 
     public AbstractCube measure(Measure measure) {
         this.measures.put(measure.getCode().toUpperCase(), measure);
+        return this;
+    }
+
+    public AbstractCube granularity(String granularity) {
+        this.granularity = granularity;
         return this;
     }
 

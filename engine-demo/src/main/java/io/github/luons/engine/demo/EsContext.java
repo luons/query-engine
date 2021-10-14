@@ -17,10 +17,9 @@ public class EsContext {
         String tableName = "stardb_monitor_mysql";
         AbstractCube cube =
                 new EsCube(tableName)
-                        .dimension(new Dimension("ip", "ip"))
+                        .dimension(new Dimension("ip", new Column("ip", "ip")))
                         .dimension(new Dimension("port", "port"))
-                        .dimension(new Dimension("service.type", "service.type"))
-                        .dimension(new Dimension("@timestamp", "@timestamp"))
+                        .dimension(new Dimension("@timestamp", new Column("@timestamp", "timestamp")))
                         .measure(new Measure("innodb_data_read_sum", new Column[]{new Column("mysql.status.global.innodb_data_read", "clients_sum", "sum")}))
                         .measure(new Measure("innodb_data_reads_avg", new Column[]{new Column("mysql.status.global.innodb_data_reads", "clients_sum", "avg")}))
                         .measure(new Measure("innodb_data_writes_sum", new Column[]{new Column("mysql.status.global.innodb_data_writes", "clients_sum", "sum")}))

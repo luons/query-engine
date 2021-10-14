@@ -9,6 +9,7 @@ import io.github.luons.engine.core.filter.Filter;
 import io.github.luons.engine.core.filter.FilterGroup;
 import io.github.luons.engine.core.filter.SimpleFilter;
 import io.github.luons.engine.core.spi.Column;
+import io.github.luons.engine.core.spi.Dimension;
 import io.github.luons.engine.core.spi.Measure;
 import io.github.luons.engine.core.spi.Query;
 import io.github.luons.engine.utils.JacksonUtils;
@@ -125,22 +126,22 @@ public class EsCube extends AbstractSqlCube {
 
     private List<Map<String, Object>> queryDbByAggs(Query query) throws Exception {
         Map<String, Object> dslObject = queryToDsl(query);
-        LinkedHashSet<String> dimensions = query.getDimensions();
-        if (dimensions == null || dimensions.isEmpty()) {
+        LinkedHashSet<String> dimSet = query.getDimensions();
+        if (dimSet == null || dimSet.isEmpty()) {
             log.error("{} dimensions isEmpty！", query);
             return new ArrayList<>();
         }
         Map<String, Object> aggMap = new HashMap<>();
-        List<String> dimensionList = new ArrayList<>(dimensions);
-
+        List<String> dimensionList = new ArrayList<>(dimSet);
         Map<String, Object> measureMapMap = getMeasureMap(query.getMeasures());
         for (int i = dimensionList.size() - 1; i >= 0; i--) {
-            String dimension = dimensionList.get(i);
-            if (StringUtils.isBlank(dimension)) {
+            String dimensionKey = dimensionList.get(i);
+            if (StringUtils.isBlank(dimensionKey) || dimensions.get(dimensionKey) == null) {
                 continue;
             }
-            Map<String, Object> tmpMap = getAggMap(dimension, query.getGranularity(), i);
-            Object dimObj = tmpMap.get(dimension);
+            Dimension dimension = dimensions.get(dimensionKey);
+            Map<String, Object> tmpMap = getAggMap(dimension, i);
+            Object dimObj = tmpMap.get(dimension.getColumn().getAlias());
             if (aggMap.size() == 0 && measureMapMap.size() > 0) {
                 ((Map<String, Object>) dimObj).put("aggs", measureMapMap);
             }
@@ -160,7 +161,7 @@ public class EsCube extends AbstractSqlCube {
         return esClient.queryDsl((index + "-*"), "", JacksonUtils.toJson(queryToDsl(query)), scrollMap);
     }
 
-    private static Map<String, Object> queryToDsl(Query query) {
+    private Map<String, Object> queryToDsl(Query query) {
         Map<String, Object> dslObject = new HashMap<>();
         FilterGroup filterGroup = query.getFilterGroup();
         Map<String, Object> queryObject = filterGroupToQueryObject(filterGroup);
@@ -173,7 +174,7 @@ public class EsCube extends AbstractSqlCube {
         return dslObject;
     }
 
-    private static Map<String, Object> filterGroupToQueryObject(FilterGroup filterGroup) {
+    private Map<String, Object> filterGroupToQueryObject(FilterGroup filterGroup) {
         Map<String, Object> queryObject = new HashMap<>();
         Connector connector = filterGroup.getConnector();
         Map<String, Object> boolObject = new HashMap<>();
@@ -189,7 +190,17 @@ public class EsCube extends AbstractSqlCube {
             if (filter instanceof FilterGroup) {
                 subObject.add(filterGroupToQueryObject((FilterGroup) filter));
             } else if (filter instanceof SimpleFilter) {
-                subObject.add(filterToObject((SimpleFilter) filter));
+                String filterName = ((SimpleFilter) filter).getName().toUpperCase();
+                Column column = null;
+                if (dimensions.containsKey(filterName)) {
+                    column = dimensions.get(filterName).getColumn();
+                } else if (measures.containsKey(filterName)) {
+                    column = measures.get(filterName).getColumns()[0];
+                }
+                if (column == null || StringUtils.isBlank(column.getColumn())) {
+                    continue;
+                }
+                subObject.add(filterToObject((SimpleFilter) filter, column));
             } else {
                 log.error("Unexpected filter object: " + filter.getClass());
             }
@@ -197,46 +208,49 @@ public class EsCube extends AbstractSqlCube {
         return queryObject;
     }
 
-    private static Map<String, Object> filterToObject(SimpleFilter filter) {
+    private static Map<String, Object> filterToObject(SimpleFilter filter, Column column) {
+
+        String columnName = column.getColumn();
+        Object columnValue = filter.getValue();
         switch (filter.getOperator()) {
             case EQ: {
-                return getEqMap(filter);
+                return getEqMap(columnName, columnValue);
             }
             case NE: {
-                return addNotMap(getEqMap(filter));
+                return addNotMap(getEqMap(columnName, columnValue));
             }
             case LT:
             case GT:
             case LE:
             case GE:
-                return getRangeMap(filter);
+                return getRangeMap(columnName, filter);
             case IN:
-                return getInMap(filter);
+                return getInMap(columnName, columnValue);
             case NIN:
-                return addNotMap(getInMap(filter));
+                return addNotMap(getInMap(columnName, columnValue));
             case EXIST:
-                return addExistMap(filter);
+                return addExistMap(columnName);
         }
         return null;
     }
 
-    private static Map<String, Object> getInMap(SimpleFilter filter) {
+    private static Map<String, Object> getInMap(String columnName, Object value) {
         Map<String, Object> re = new HashMap<>();
         Map<String, Object> boolMap = new HashMap<>();
         List<Map<String, Object>> shouldMap = new LinkedList<>();
         boolMap.put("should", shouldMap);
         re.put("bool", boolMap);
-        if (!(filter.getValue() instanceof Iterable)) {
+        if (!(value instanceof Iterable)) {
             return re;
         }
-        for (Object values : (Iterable<?>) filter.getValue()) {
+        for (Object values : (Iterable<?>) value) {
             Map<String, Object> sub = new HashMap<>();
             if (values == null || !values.getClass().isArray()) {
                 continue;
             }
             for (Object _v : (Object[]) values) {
                 Map<String, Object> _vMap = new HashMap<>();
-                _vMap.put(filter.getName(), _v);
+                _vMap.put(columnName, _v);
                 sub.put("match_phrase", _vMap);
                 shouldMap.add(sub);
             }
@@ -250,21 +264,21 @@ public class EsCube extends AbstractSqlCube {
         return re;
     }
 
-    private static Map<String, Object> getRangeMap(SimpleFilter filter) {
+    private static Map<String, Object> getRangeMap(String columnName, SimpleFilter filter) {
         String dslOperator = toDslOperator(filter.getOperator());
         Map<String, Object> re = new HashMap<>();
         Map<String, Object> rangeMap = new HashMap<>();
         Map<String, Object> operatorMap = new HashMap<>();
-        rangeMap.put(filter.getName(), operatorMap);
+        rangeMap.put(columnName, operatorMap);
         operatorMap.put(dslOperator, filter.getValue());
         re.put("range", rangeMap);
         return re;
     }
 
-    private static Map<String, Object> addExistMap(SimpleFilter filter) {
+    private static Map<String, Object> addExistMap(String columnName) {
         Map<String, Object> re = new HashMap<>();
         Map<String, Object> existMap = new HashMap<>();
-        existMap.put("field", filter.getName());
+        existMap.put("field", columnName);
         re.put("exists", existMap);
         return re;
     }
@@ -291,36 +305,36 @@ public class EsCube extends AbstractSqlCube {
         }
     }
 
-    private static Map<String, Object> getEqMap(SimpleFilter filter) {
+    private static Map<String, Object> getEqMap(String columnName, Object value) {
         Map<String, Object> re = new HashMap<>();
         Map<String, Object> termMap = new HashMap<>();
-        termMap.put(filter.getName(), filter.getValue());
+        termMap.put(columnName, value);
         re.put("term", termMap);
         return re;
     }
 
-    private Map<String, Object> getAggMap(String field, String granularity, int i) {
+    private Map<String, Object> getAggMap(Dimension dimension, int i) {
         Map<String, Object> aggMap = new HashMap<>();
-        if (StringUtils.isBlank(field)) {
-            return aggMap;
-        }
+        String fieldName = dimension.getColumn().getColumn();
+        String aliasName = dimension.getColumn().getAlias();
         Map<String, Object> fieldMap = new HashMap<>();
         Map<String, Object> term = new HashMap<>();
-        if (StringUtils.isNotBlank(granularity) && i == 0 && field.contains("time")) {
-            term.put("field", field);
+        // TODO 如果有粒度，且时间必须放在首位
+        if (StringUtils.isNotBlank(granularity) && i == 0 && fieldName.contains("time")) {
+            term.put("field", fieldName);
             term.put("interval", granularity);
             term.put("time_zone", "Asia/Shanghai");
             term.put("min_doc_count", 1);
             fieldMap.put("date_histogram", term);
-            aggMap.put(field, fieldMap);
+            aggMap.put(aliasName, fieldMap);
             return aggMap;
         }
-        term.put("field", field);
+        term.put("field", fieldName);
         term.put("order", new HashMap<String, String>() {{
             put("_count", "desc");
         }});
         fieldMap.put("terms", term);
-        aggMap.put(field, fieldMap);
+        aggMap.put(aliasName, fieldMap);
         return aggMap;
     }
 
@@ -348,7 +362,6 @@ public class EsCube extends AbstractSqlCube {
         return measureMapMap;
     }
 
-
     private static String addZero2Str(Number numObj, int length) {
         NumberFormat nf = NumberFormat.getInstance();
         nf.setGroupingUsed(false);
@@ -357,18 +370,4 @@ public class EsCube extends AbstractSqlCube {
         return nf.format(numObj);
     }
 
-    public static void main(String[] args) {
-        Query query = new Query();
-        FilterGroup filterGroup = new FilterGroup();
-        filterGroup.addFilter(new SimpleFilter("uniq_id", "12111110"));
-        filterGroup.addFilter(new SimpleFilter("time", Operator.GE, 1588852530000L));
-        filterGroup.addFilter(new SimpleFilter("time", Operator.LT, 1588852560000L));
-        query.setFilterGroup(filterGroup);
-
-        LinkedHashSet<String> set = new LinkedHashSet<>();
-        set.add("distinct_id");
-        set.add("event");
-        query.setFields(set);
-        System.out.println(JacksonUtils.toJson(queryToDsl(query)));
-    }
 }
