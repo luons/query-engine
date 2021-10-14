@@ -1,5 +1,7 @@
 package io.github.luons.engine.es.EsUtils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.*;
 
 public class EsUtils {
@@ -10,6 +12,20 @@ public class EsUtils {
     private static final String BUCKETS = "buckets";
     private static final String DOC_COUNT = "doc_count";
     private static final String KEY_AS_STRING = "key_as_string";
+
+    public static List<Map<String, Object>> flatMap(List<Map<String, Object>> list) {
+        if (list == null || list.size() == 0) {
+            return new ArrayList<>();
+        }
+        List<Map<String, Object>> newList = new ArrayList<>();
+        for (Map<String, Object> metricMap : list) {
+            if (metricMap == null || metricMap.size() == 0) {
+                continue;
+            }
+            newList.add(getValueRec("", metricMap));
+        }
+        return newList;
+    }
 
     public static List<Map<String, Object>> results(Map<String, Object> aggregations) {
         List<Map<String, Object>> aggList = new ArrayList<>();
@@ -168,6 +184,37 @@ public class EsUtils {
         } else {
             return "";
         }
+    }
+
+    private static Map<String, Object> getValueRec(String keyPrefix, Map<String, Object> metricMap) {
+        Map<String, Object> newMetric = new HashMap<>();
+        if (metricMap == null || metricMap.size() == 0) {
+            if (StringUtils.isNotBlank(keyPrefix)) {
+                newMetric.put(keyPrefix, null);
+            }
+            return newMetric;
+        }
+        for (Map.Entry<String, Object> entry : metricMap.entrySet()) {
+            String key = entry.getKey();
+            if (StringUtils.isBlank(key)) {
+                continue;
+            }
+            Object value = entry.getValue();
+            if (StringUtils.isNotBlank(keyPrefix)) {
+                key = keyPrefix + "." + key;
+            }
+            if (!(value instanceof Map)) {
+                newMetric.put(key, value);
+                continue;
+            }
+            Map<String, Object> valueRec = getValueRec(key, (Map<String, Object>) value);
+            if (valueRec.size() > 0) {
+                newMetric.putAll(valueRec);
+                continue;
+            }
+            newMetric.put(key, null);
+        }
+        return newMetric;
     }
 
 }

@@ -8,6 +8,8 @@ import io.github.luons.engine.core.enums.Operator;
 import io.github.luons.engine.core.filter.Filter;
 import io.github.luons.engine.core.filter.FilterGroup;
 import io.github.luons.engine.core.filter.SimpleFilter;
+import io.github.luons.engine.core.spi.Column;
+import io.github.luons.engine.core.spi.Measure;
 import io.github.luons.engine.core.spi.Query;
 import io.github.luons.engine.utils.JacksonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -130,10 +132,18 @@ public class EsCube extends AbstractSqlCube {
         }
         Map<String, Object> aggMap = new HashMap<>();
         List<String> dimensionList = new ArrayList<>(dimensions);
-        for (int i = (dimensionList.size() - 1); i >= 0; i--) {
+
+        Map<String, Object> measureMapMap = getMeasureMap(query.getMeasures());
+        for (int i = dimensionList.size() - 1; i >= 0; i--) {
             String dimension = dimensionList.get(i);
-            Map<String, Object> tmpMap = getAggMap(dimension);
+            if (StringUtils.isBlank(dimension)) {
+                continue;
+            }
+            Map<String, Object> tmpMap = getAggMap(dimension, query.getGranularity(), i);
             Object dimObj = tmpMap.get(dimension);
+            if (aggMap.size() == 0 && measureMapMap.size() > 0) {
+                ((Map<String, Object>) dimObj).put("aggs", measureMapMap);
+            }
             if (aggMap.size() > 0 && !Objects.isNull(dimObj)) {
                 ((Map<String, Object>) dimObj).put("aggs", aggMap);
             }
@@ -289,13 +299,22 @@ public class EsCube extends AbstractSqlCube {
         return re;
     }
 
-    private Map<String, Object> getAggMap(String field) {
+    private Map<String, Object> getAggMap(String field, String granularity, int i) {
         Map<String, Object> aggMap = new HashMap<>();
         if (StringUtils.isBlank(field)) {
             return aggMap;
         }
         Map<String, Object> fieldMap = new HashMap<>();
         Map<String, Object> term = new HashMap<>();
+        if (StringUtils.isNotBlank(granularity) && i == 0 && field.contains("time")) {
+            term.put("field", field);
+            term.put("interval", granularity);
+            term.put("time_zone", "Asia/Shanghai");
+            term.put("min_doc_count", 1);
+            fieldMap.put("date_histogram", term);
+            aggMap.put(field, fieldMap);
+            return aggMap;
+        }
         term.put("field", field);
         term.put("order", new HashMap<String, String>() {{
             put("_count", "desc");
@@ -304,6 +323,31 @@ public class EsCube extends AbstractSqlCube {
         aggMap.put(field, fieldMap);
         return aggMap;
     }
+
+    private Map<String, Object> getMeasureMap(LinkedHashSet<String> measureKeys) {
+        Map<String, Object> measureMapMap = new LinkedHashMap<>();
+        if (measureKeys == null || measureKeys.size() == 0) {
+            return measureMapMap;
+        }
+        for (String measureKey : measureKeys) {
+            Measure measure = measures.get(measureKey);
+            if (Objects.isNull(measure) || measure.getColumns() == null) {
+                continue;
+            }
+            Map<String, Map<String, String>> columnMap = new LinkedHashMap<>();
+            for (Column column : measure.getColumns()) {
+                Map<String, String> map = new HashMap<>();
+                String key = StringUtils.isNotBlank(column.getAlias()) ? column.getAlias() : column.getColumn();
+                map.put("field", column.getColumn());
+                // TODO 注意 Agg 是否适配
+                String aggNames = column.getAggregation().name().toLowerCase();
+                columnMap.put(aggNames, map);
+                measureMapMap.put(key, columnMap);
+            }
+        }
+        return measureMapMap;
+    }
+
 
     private static String addZero2Str(Number numObj, int length) {
         NumberFormat nf = NumberFormat.getInstance();

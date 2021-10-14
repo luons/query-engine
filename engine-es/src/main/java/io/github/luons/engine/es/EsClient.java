@@ -46,14 +46,6 @@ public class EsClient extends Client {
         return getSearchResult(execute);
     }
 
-    public Map<String, Object> querySqlOriginal(String sqlQry) throws Exception {
-        Request<HttpPost> request = post("/_sql");
-        request.header(AUTHORIZATION, authorization);
-        Map<String, Object> execute = getEsExecute(request, sqlQry);
-        debugLogMessage(request.getRequestUri().toString(), sqlQry, execute.get("took"));
-        return execute;
-    }
-
     private static List<Map<String, Object>> getSearchResult(Map<String, Object> execute) {
         List<Map<String, Object>> fmtRecords = new LinkedList<>();
         Map<String, Object> hitsMap = (Map<String, Object>) execute.get("hits");
@@ -102,14 +94,6 @@ public class EsClient extends Client {
         return getSearchResult(execute);
     }
 
-    public Map<String, Object> queryDslOriginal(String indexName, String type, String dslQry) throws Exception {
-        Request<HttpPost> request = post(indexName, type, "_search");
-        request.header(AUTHORIZATION, authorization);
-        Map<String, Object> execute = getEsExecute(request, dslQry);
-        debugLogMessage(request.getRequestUri().toString(), dslQry, execute.get("took"));
-        return execute;
-    }
-
     public long countDsl(String indexName, String type, String dslQry) throws Exception {
         Request<HttpPost> request = post(indexName, type, "_count");
         request.header(AUTHORIZATION, authorization);
@@ -154,24 +138,6 @@ public class EsClient extends Client {
         return scrollList;
     }
 
-    public Map<String, Object> getObject(String indexName, String type, String id) throws Exception {
-        Request<HttpGet> request = get(indexName, type, id);
-        request.header(AUTHORIZATION, this.authorization);
-
-        Map<String, Object> execute = getEsExecute(request, null);
-        debugLogMessage(request.getRequestUri().toString(), id, execute.get("took"));
-        return getGetResult(execute);
-    }
-
-    // TODO
-    public Map<String, Object> deleteObject(String indexName, String type, String id) throws Exception {
-        Request<HttpDelete> request = delete(indexName, type, id);
-        request.header(AUTHORIZATION, this.authorization);
-        Map<String, Object> execute = getEsExecute(request, null);
-        debugLogMessage(request.getRequestUri().toString(), id, execute.get("took"));
-        return getGetResult(execute);
-    }
-
     public void insertObject(String indexName, String type, String id, Map<String, Object> object) throws Exception {
         Request<HttpPut> request;
         if (id == null) {
@@ -186,6 +152,23 @@ public class EsClient extends Client {
 
     public void insertObject(String indexName, String type, Map<String, Object> object) throws Exception {
         insertObject(indexName, type, null, object);
+    }
+
+    public Map<String, Object> getObject(String indexName, String type, String id) throws Exception {
+        Request<HttpGet> request = get(indexName, type, id);
+        request.header(AUTHORIZATION, this.authorization);
+
+        Map<String, Object> execute = getEsExecute(request, null);
+        debugLogMessage(request.getRequestUri().toString(), id, execute.get("took"));
+        return getGetResult(execute);
+    }
+
+    public Map<String, Object> deleteObject(String indexName, String type, String id) throws Exception {
+        Request<HttpDelete> request = delete(indexName, type, id);
+        request.header(AUTHORIZATION, this.authorization);
+        Map<String, Object> execute = getEsExecute(request, null);
+        debugLogMessage(request.getRequestUri().toString(), id, execute.get("took"));
+        return getGetResult(execute);
     }
 
     private static void handleAggr(String aggrKey, Map<String, Object> aggrValue, Map<String, Object> row,

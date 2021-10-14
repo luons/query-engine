@@ -41,9 +41,13 @@ public class Query implements Serializable {
      */
     private LinkedHashSet<String> hints = new LinkedHashSet<>();
     /**
+     * 粒度
+     */
+    private String granularity;
+    /**
      * 分页
      */
-    private Pageable pageable;
+    private Pageable<?> pageable;
 
 
     public Query dimension(String dimension) {
@@ -61,7 +65,7 @@ public class Query implements Serializable {
         return this;
     }
 
-    public Query pageable(Pageable pageable) {
+    public Query pageable(Pageable<?> pageable) {
         this.pageable = pageable;
         return this;
     }
@@ -81,6 +85,11 @@ public class Query implements Serializable {
         return this;
     }
 
+    public Query granularity(String granularity) {
+        this.granularity = granularity;
+        return this;
+    }
+
     public Query rangeDim(RangeDim rangeDim) {
         this.rangeDims.add(rangeDim);
         return this;
@@ -96,6 +105,7 @@ public class Query implements Serializable {
         query.hints = this.hints;
         query.rangeDims = this.rangeDims;
         query.pageable = this.pageable;
+        query.granularity = this.granularity;
         return query;
     }
 
