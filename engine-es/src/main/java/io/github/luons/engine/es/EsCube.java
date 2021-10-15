@@ -40,9 +40,9 @@ public class EsCube extends AbstractSqlCube {
     protected List<CubeMap<Object>> queryDB(Query query) {
         List<Map<String, Object>> dataMapList;
         List<CubeMap<Object>> cubeMapList = new LinkedList<>();
-        LinkedHashSet<String> dimensions = query.getDimensions();
+        LinkedHashSet<String> dimensionKeys = query.getDimensions();
         try {
-            if (dimensions != null && dimensions.size() > 0) {
+            if (dimensionKeys != null && dimensionKeys.size() > 0) {
                 dataMapList = queryDbByAggs(query);
             } else {
                 dataMapList = queryDbByDsl(query);
@@ -56,7 +56,16 @@ public class EsCube extends AbstractSqlCube {
         }
         for (Map<String, Object> map : dataMapList) {
             CubeMap<Object> item = new CubeMap<>();
-            item.putAll(map);
+            Map<String, Object> tmpMap = new HashMap<>(map.size());
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                String key = entry.getKey();
+                Dimension dimension = dimensions.get(key);
+                if (dimension != null && dimension.getColumn() != null) {
+                    key = dimensions.get(key).getColumn().getAlias();
+                }
+                tmpMap.put(key, entry.getValue());
+            }
+            item.putAll(tmpMap);
             cubeMapList.add(item);
         }
         final LinkedHashSet<String> orderSet = query.getOrders();
