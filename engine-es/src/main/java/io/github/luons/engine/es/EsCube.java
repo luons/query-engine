@@ -21,6 +21,7 @@ import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.text.NumberFormat;
+import java.time.ZoneId;
 import java.util.*;
 
 @Slf4j
@@ -319,7 +320,7 @@ public class EsCube extends AbstractSqlCube {
         if (StringUtils.isNotBlank(granularity) && i == 0 && fieldName.contains("time")) {
             term.put("field", fieldName);
             term.put("interval", granularity);
-            term.put("time_zone", "Asia/Shanghai");
+            term.put("time_zone", TimeZone.getTimeZone(ZoneId.systemDefault()).getID());
             term.put("min_doc_count", 1);
             fieldMap.put("date_histogram", term);
             aggMap.put(aliasName, fieldMap);
