@@ -95,6 +95,8 @@ public class EsUtils {
         if (Objects.isNull(bucketMap) || bucketMap.size() == 0) {
             return;
         }
+        boolean isValue = false;
+        LinkedHashMap<String, Object> groupMap = new LinkedHashMap<>(group);
         for (Map.Entry<String, Object> entry : bucketMap.entrySet()) {
             String entryKey = entry.getKey();
             Object entryValue = entry.getValue();
@@ -102,13 +104,11 @@ public class EsUtils {
                 continue;
             }
             if (((Map<?, ?>) entryValue).containsKey(VALUE)) {
-                LinkedHashMap<String, Object> groupMap = new LinkedHashMap<>(group);
-                groupMap.put(VALUE, ((Map<?, ?>) entryValue).get(VALUE));
-                aggValueList.add(groupMap);
-                break;
-            }
-            if (((Map<?, ?>) entryValue).containsKey(VALUES)) {
-                LinkedHashMap<String, Object> groupMap = new LinkedHashMap<>(group);
+                groupMap.put(entryKey, ((Map<?, ?>) entryValue).get(VALUE));
+                isValue = true;
+                continue;
+            } else if (((Map<?, ?>) entryValue).containsKey(VALUES)) {
+                // LinkedHashMap<String, Object> groupMap = new LinkedHashMap<>(group);
                 Object valuesObj = ((Map<?, ?>) entryValue).get(VALUES);
                 Object tmpObj = null;
                 if (valuesObj instanceof List) {
@@ -123,11 +123,10 @@ public class EsUtils {
                 } else {
                     tmpObj = valuesObj;
                 }
-                groupMap.put(VALUE, tmpObj);
-                aggValueList.add(groupMap);
-                break;
+                groupMap.put(entryKey, tmpObj);
+                isValue = true;
+                continue;
             }
-
             for (Map.Entry<String, Object> entry2 : ((Map<String, Object>) entryValue).entrySet()) {
                 String entryKey2 = entry2.getKey();
                 Object entryValue2 = entry2.getValue();
@@ -157,10 +156,9 @@ public class EsUtils {
                     break;
                 }
             }
-            // LinkedHashMap<String, Object> groupMap = package2map(_value);
-            // groupMap.putAll(group);
-            // aggValueList.add(groupMap);
-            // break;
+        }
+        if (isValue) {
+            aggValueList.add(groupMap);
         }
     }
 

@@ -20,7 +20,8 @@ public class EsContext {
                         .dimension(new Dimension("ip", new Column("ip", "ip")))
                         .dimension(new Dimension("port", "port"))
                         .dimension(new Dimension("@timestamp", new Column("@timestamp", "timestamp")))
-                        .measure(new Measure("innodb_data_read_sum", new Column[]{new Column("mysql.status.global.innodb_data_read", "clients_sum", "sum")}))
+                        .measure(new Measure("bytes_received_sum", new Column[]{new Column("mysql.status.global.bytes_received", "bytes_received_sum", "sum")}))
+                        .measure(new Measure("innodb_data_read_sum", new Column[]{new Column("mysql.status.global.innodb_data_read", "innodb_data_read_sum", "sum")}))
                         .measure(new Measure("innodb_data_reads_avg", new Column[]{new Column("mysql.status.global.innodb_data_reads", "clients_sum", "avg")}))
                         .measure(new Measure("innodb_data_writes_sum", new Column[]{new Column("mysql.status.global.innodb_data_writes", "clients_sum", "sum")}))
                         .measure(new Measure("innodb_data_written_avg", new Column[]{new Column("mysql.status.global.innodb_data_written", "connects_avg", "avg")}));

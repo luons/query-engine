@@ -68,41 +68,8 @@ public class EsCube extends AbstractSqlCube {
             item.putAll(tmpMap);
             cubeMapList.add(item);
         }
-        final LinkedHashSet<String> orderSet = query.getOrders();
-        if (orderSet == null) {
-            return cubeMapList;
-        }
-        cubeMapList.sort(new Comparator<CubeMap<Object>>() {
-            int sortValue = 0;
 
-            @Override
-            public int compare(CubeMap<Object> o1, CubeMap<Object> o2) {
-                for (String orderField : orderSet) {
-                    final String field = orderField.replaceFirst(("[+\\-]"), ("")).trim();
-                    if (!o1.containsKey(field) || !o2.containsKey(field)
-                            || o1.get(field) == null || o2.get(field) == null) {
-                        continue;
-                    }
-                    Object v1 = o1.getOrDefault(field, (0));
-                    Object v2 = o2.getOrDefault(field, (0));
-                    String str1 = v1.toString();
-                    String str2 = v2.toString();
-                    if (v1 instanceof Number && v2 instanceof Number) {
-                        int maxLen = Math.max(v1.toString().length(), v2.toString().length());
-                        str1 = addZero2Str((Number) v1, maxLen);
-                        str2 = addZero2Str((Number) v2, maxLen);
-                    }
-                    sortValue = str1.compareTo(str2);
-                    if (orderField.contains("-")) {
-                        sortValue = -sortValue;
-                    }
-                    if (0 != sortValue) {
-                        break;
-                    }
-                }
-                return sortValue;
-            }
-        });
+        aggOrderBy(cubeMapList, query.getOrders());
         return cubeMapList;
     }
 
@@ -134,7 +101,7 @@ public class EsCube extends AbstractSqlCube {
     }
 
     private List<Map<String, Object>> queryDbByAggs(Query query) throws Exception {
-        Map<String, Object> dslObject = queryToDsl(query);
+        Map<String, Object> dslObject = queryToDsl(query, false);
         LinkedHashSet<String> dimSet = query.getDimensions();
         if (dimSet == null || dimSet.isEmpty()) {
             log.error("{} dimensions isEmpty！", query);
@@ -167,10 +134,10 @@ public class EsCube extends AbstractSqlCube {
 
     private List<Map<String, Object>> queryDbByDsl(Query query) throws Exception {
         Map<String, String> scrollMap = new HashMap<>();
-        return esClient.queryDsl((index + "-*"), "", JacksonUtils.toJson(queryToDsl(query)), scrollMap);
+        return esClient.queryDsl((index + "-*"), "", JacksonUtils.toJson(queryToDsl(query, true)), scrollMap);
     }
 
-    private Map<String, Object> queryToDsl(Query query) {
+    private Map<String, Object> queryToDsl(Query query, boolean isOrder) {
         Map<String, Object> dslObject = new HashMap<>();
         FilterGroup filterGroup = query.getFilterGroup();
         Map<String, Object> queryObject = filterGroupToQueryObject(filterGroup);
@@ -179,6 +146,26 @@ public class EsCube extends AbstractSqlCube {
             Map<String, Object> includes = new HashMap<>();
             includes.put("includes", query.getFields());
             dslObject.put("_source", includes);
+        }
+        // Order
+        if (isOrder && query.getOrders() != null && query.getOrders().size() > 0) {
+            List<Map<String, Map<String, String>>> sortMapList = new ArrayList<>();
+            for (String orderKey : query.getOrders()) {
+                Column column = getColumnByKey(orderKey);
+                if (column == null) {
+                    continue;
+                }
+                String orderBy = "asc";
+                if ("-" .equals(orderKey.substring(0, 1))) {
+                    orderBy = "desc";
+                }
+                Map<String, String> orderMap = new HashMap<>();
+                orderMap.put("order", orderBy);
+                Map<String, Map<String, String>> sortMap = new LinkedHashMap<>();
+                sortMap.put(column.getColumn(), orderMap);
+                sortMapList.add(sortMap);
+            }
+            dslObject.put("sort", sortMapList);
         }
         return dslObject;
     }
@@ -379,4 +366,57 @@ public class EsCube extends AbstractSqlCube {
         return nf.format(numObj);
     }
 
+    private void aggOrderBy(List<CubeMap<Object>> cubeMapList, Set<String> orderSet) {
+        if (orderSet == null) {
+            return;
+        }
+        cubeMapList.sort(new Comparator<CubeMap<Object>>() {
+            int sortValue = 0;
+
+            @Override
+            public int compare(CubeMap<Object> o1, CubeMap<Object> o2) {
+                for (String orderKey : orderSet) {
+                    boolean isDesc = "-" .equals(orderKey.substring(0, 1));
+                    orderKey = isDesc ? orderKey.substring(1) : orderKey;
+                    Column column = getColumnByKey(orderKey);
+                    if (column == null) {
+                        continue;
+                    }
+                    String orderField = column.getAlias();
+                    if (!o1.containsKey(orderField) || !o2.containsKey(orderField)) {
+                        continue;
+                    }
+                    Object v1 = o1.getOrDefault(orderField, (0));
+                    Object v2 = o2.getOrDefault(orderField, (0));
+                    String str1 = v1.toString();
+                    String str2 = v2.toString();
+                    if (v1 instanceof Number && v2 instanceof Number) {
+                        int maxLen = Math.max(v1.toString().length(), v2.toString().length());
+                        str1 = addZero2Str((Number) v1, maxLen);
+                        str2 = addZero2Str((Number) v2, maxLen);
+                    }
+                    sortValue = str1.compareTo(str2);
+                    if (isDesc) {
+                        sortValue = -sortValue;
+                    }
+                    if (0 != sortValue) {
+                        break;
+                    }
+                }
+                return sortValue;
+            }
+        });
+    }
+
+    private Column getColumnByKey(String key) {
+        Dimension dimension = dimensions.get(key);
+        if (dimension != null && dimension.getColumn() != null) {
+            return dimension.getColumn();
+        }
+        Measure measure = measures.get(key);
+        if (measure != null && measure.getColumns() != null) {
+            return measure.getColumns()[0];
+        }
+        return null;
+    }
 }
