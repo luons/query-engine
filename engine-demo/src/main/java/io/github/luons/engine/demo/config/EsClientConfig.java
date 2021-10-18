@@ -13,13 +13,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class EsClientConfig {
 
-    @Value("${spring.es.url}")
+    @Value("${spring.es.url:http://localhost:9200}")
     private String esUrl;
 
-    @Value("${spring.es.user}")
+    @Value("${spring.es.user:user}")
     private String esUser;
 
-    @Value("${spring.es.password}")
+    @Value("${spring.es.password:pwd}")
     private String esPwd;
 
     @Bean
