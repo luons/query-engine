@@ -4,7 +4,7 @@ import io.github.luons.engine.core.cube.AbstractCube;
 import io.github.luons.engine.core.spi.Column;
 import io.github.luons.engine.core.spi.Dimension;
 import io.github.luons.engine.core.spi.Measure;
-import io.github.luons.engine.cube.CubeRegistry;
+import io.github.luons.engine.core.CubeRegistry;
 import io.github.luons.engine.es.EsCube;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

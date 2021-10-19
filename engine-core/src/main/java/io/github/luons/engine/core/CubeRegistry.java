@@ -1,4 +1,4 @@
-package io.github.luons.engine.cube;
+package io.github.luons.engine.core;
 
 import io.github.luons.engine.core.cube.AbstractCube;
 

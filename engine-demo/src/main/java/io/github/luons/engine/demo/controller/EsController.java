@@ -4,7 +4,7 @@ import io.github.luons.engine.common.CommonException;
 import io.github.luons.engine.core.ResponseWrapper;
 import io.github.luons.engine.core.cube.AbstractCube;
 import io.github.luons.engine.core.spi.Query;
-import io.github.luons.engine.cube.CubeRegistry;
+import io.github.luons.engine.core.CubeRegistry;
 import io.github.luons.engine.demo.enums.ResultEnum;
 import io.github.luons.engine.demo.service.EsService;
 import io.github.luons.engine.es.EsUtils.EsUtils;
