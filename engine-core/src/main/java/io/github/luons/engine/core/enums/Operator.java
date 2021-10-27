@@ -18,7 +18,7 @@ public enum Operator {
 
     private String expInSql;
 
-    private Operator(String expInSql) {
+    Operator(String expInSql) {
         this.expInSql = expInSql;
     }
 

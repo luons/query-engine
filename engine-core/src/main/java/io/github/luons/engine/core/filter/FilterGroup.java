@@ -28,6 +28,14 @@ public class FilterGroup implements Filter {
         return this;
     }
 
+    public FilterGroup and(Filter filter) {
+        return append(Connector.AND, filter);
+    }
+
+    public FilterGroup or(Filter filter) {
+        return append(Connector.OR, filter);
+    }
+
     public Connector getConnector() {
         return connector;
     }
@@ -48,11 +56,4 @@ public class FilterGroup implements Filter {
         }
     }
 
-    public FilterGroup and(Filter filter) {
-        return append(Connector.AND, filter);
-    }
-
-    public FilterGroup or(Filter filter) {
-        return append(Connector.OR, filter);
-    }
 }
