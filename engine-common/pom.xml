@@ -4,13 +4,13 @@
   <parent>
     <artifactId>query-engine</artifactId>
     <groupId>io.github.luons.engine</groupId>
-    <version>1.0.2.RELEASE</version>
+    <version>1.0.3.RELEASE</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
   <name>engine-common</name>
   <artifactId>engine-common</artifactId>
-  <version>1.0.2.RELEASE</version>
+  <version>1.0.3.RELEASE</version>
   <url>http://www.example.com</url>
 
   <dependencies>

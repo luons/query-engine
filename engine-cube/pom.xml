@@ -5,11 +5,11 @@
   <parent>
     <artifactId>query-engine</artifactId>
     <groupId>io.github.luons.engine</groupId>
-    <version>1.0.2.RELEASE</version>
+    <version>1.0.3.RELEASE</version>
   </parent>
 
   <artifactId>engine-cube</artifactId>
-  <version>1.0.2.RELEASE</version>
+  <version>1.0.3.RELEASE</version>
   <name>engine-cube</name>
   <url>http://www.example.com</url>
 
@@ -17,7 +17,7 @@
     <dependency>
       <groupId>io.github.luons.engine</groupId>
       <artifactId>engine-core</artifactId>
-      <version>1.0.2.RELEASE</version>
+      <version>1.0.3.RELEASE</version>
     </dependency>
     <dependency>
       <groupId>org.mybatis</groupId>
