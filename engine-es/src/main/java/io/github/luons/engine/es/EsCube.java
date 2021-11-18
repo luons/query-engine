@@ -3,6 +3,7 @@ package io.github.luons.engine.es;
 import com.google.common.base.Preconditions;
 import io.github.luons.engine.core.cube.AbstractSqlCube;
 import io.github.luons.engine.core.cube.CubeMap;
+import io.github.luons.engine.core.enums.Aggregations;
 import io.github.luons.engine.core.enums.Connector;
 import io.github.luons.engine.core.enums.Operator;
 import io.github.luons.engine.core.filter.Filter;
@@ -31,6 +32,8 @@ public class EsCube extends AbstractSqlCube {
     private EsClient esClient;
 
     private final String index;
+
+    private static int minDocCount = 1;
 
     public EsCube(String index) {
         this.index = index;
@@ -157,7 +160,7 @@ public class EsCube extends AbstractSqlCube {
                     continue;
                 }
                 String orderBy = "asc";
-                if ("-" .equals(orderKey.substring(0, 1))) {
+                if ("-".equals(orderKey.substring(0, 1))) {
                     orderBy = "desc";
                 }
                 Map<String, String> orderMap = new HashMap<>();
@@ -321,7 +324,7 @@ public class EsCube extends AbstractSqlCube {
             term.put("field", fieldName);
             term.put("interval", granularity);
             term.put("time_zone", TimeZone.getTimeZone(ZoneId.systemDefault()).getID());
-            term.put("min_doc_count", 1);
+            term.put("min_doc_count", minDocCount);
             fieldMap.put("date_histogram", term);
             aggMap.put(aliasName, fieldMap);
             return aggMap;
@@ -349,7 +352,13 @@ public class EsCube extends AbstractSqlCube {
             for (Column column : measure.getColumns()) {
                 Map<String, String> map = new HashMap<>();
                 String key = StringUtils.isNotBlank(column.getAlias()) ? column.getAlias() : column.getColumn();
-                map.put("field", column.getColumn());
+                if (Aggregations.DERIVATIVE.getAgg().equalsIgnoreCase(column.getAggregation().getAgg())
+                        && StringUtils.isNotBlank(granularity)) {
+                    map.put("buckets_path", column.getColumn());
+                    minDocCount = 0;
+                } else {
+                    map.put("field", column.getColumn());
+                }
                 // TODO 注意 Agg 是否适配
                 String aggNames = column.getAggregation().name().toLowerCase();
                 columnMap.put(aggNames, map);
@@ -377,7 +386,7 @@ public class EsCube extends AbstractSqlCube {
             @Override
             public int compare(CubeMap<Object> o1, CubeMap<Object> o2) {
                 for (String orderKey : orderSet) {
-                    boolean isDesc = "-" .equals(orderKey.substring(0, 1));
+                    boolean isDesc = "-".equals(orderKey.substring(0, 1));
                     orderKey = isDesc ? orderKey.substring(1) : orderKey;
                     Column column = getColumnByKey(orderKey);
                     if (column == null) {

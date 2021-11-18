@@ -14,6 +14,14 @@ public enum Aggregations {
     MEDIAN("median"),
     MIN("min"),
     SUM("sum"),
+    /**
+     * rate 只应用于时间聚合
+     */
+    RATE("rate"),
+    /**
+     * derivative 只应用于时间聚合
+     */
+    DERIVATIVE("derivative"),
     DEFAULT("average"),
     ;
     private String agg;

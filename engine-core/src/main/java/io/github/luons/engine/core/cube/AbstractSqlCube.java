@@ -44,7 +44,7 @@ public abstract class AbstractSqlCube extends AbstractCube implements IMeasureMi
                     .addFilter(limitFilterGroup);
             query.filterGroup(filterGroup);
         }
-        if (StringUtils.isBlank(granularity) && StringUtils.isNotBlank(query.getGranularity())) {
+        if (StringUtils.isNotBlank(query.getGranularity())) {
             granularity = query.getGranularity();
         }
         return queryDB(query);
