@@ -348,25 +348,52 @@ public class EsCube extends AbstractSqlCube {
             if (Objects.isNull(measure) || measure.getColumns() == null) {
                 continue;
             }
-            Map<String, Map<String, String>> columnMap = new LinkedHashMap<>();
-            for (Column column : measure.getColumns()) {
-                Map<String, String> map = new HashMap<>();
-                String key = StringUtils.isNotBlank(column.getAlias()) ? column.getAlias() : column.getColumn();
-                if (Aggregations.DERIVATIVE.getAgg().equalsIgnoreCase(column.getAggregation().getAgg())
-                        && StringUtils.isNotBlank(granularity)) {
-                    map.put("buckets_path", column.getColumn());
-                    minDocCount = 0;
-                } else {
-                    map.put("field", column.getColumn());
-                }
-                // TODO 注意 Agg 是否适配
-                String aggNames = column.getAggregation().name().toLowerCase();
-                columnMap.put(aggNames, map);
-                measureMapMap.put(key, columnMap);
+            Map<String, Object> measureTmpMap = genColumnMetricMap(measureKey);
+            if (Objects.isNull(measureTmpMap)) {
+                continue;
             }
+            measureMapMap.putAll(measureTmpMap);
         }
         return measureMapMap;
     }
+
+    private Map<String, Object> genColumnMetricMap(String measureAliKey) {
+        if (StringUtils.isBlank(measureAliKey)) {
+            return null;
+        }
+        Measure measure = measures.get(measureAliKey);
+        if (Objects.isNull(measure) || measure.getColumns() == null) {
+            return null;
+        }
+        Map<String, Object> measureMapMap = new LinkedHashMap<>();
+        Map<String, Map<String, String>> columnMap = new LinkedHashMap<>();
+        for (Column column : measure.getColumns()) {
+            String colName = column.getColumn();
+            // 判断是否是复合指标
+            String newMeasureAliasKey = isComplexTarget(colName);
+            if (StringUtils.isNotBlank(newMeasureAliasKey)) {
+                Map<String, Object> measureTmpMap = genColumnMetricMap(newMeasureAliasKey);
+                if (!Objects.isNull(measureTmpMap) && measureTmpMap.size() > 0) {
+                    measureMapMap.putAll(measureTmpMap);
+                }
+            }
+            Map<String, String> map = new HashMap<>();
+            String key = StringUtils.isNotBlank(column.getAlias()) ? column.getAlias() : colName;
+            if (Aggregations.DERIVATIVE.getAgg().equalsIgnoreCase(column.getAggregation().getAgg())
+                    && StringUtils.isNotBlank(granularity)) {
+                map.put("buckets_path", colName);
+                minDocCount = 0;
+            } else {
+                map.put("field", colName);
+            }
+            // TODO 注意 Agg 是否适配
+            String aggNames = column.getAggregation().name().toLowerCase();
+            columnMap.put(aggNames, map);
+            measureMapMap.put(key, columnMap);
+        }
+        return measureMapMap;
+    }
+
 
     private static String addZero2Str(Number numObj, int length) {
         NumberFormat nf = NumberFormat.getInstance();
@@ -429,4 +456,23 @@ public class EsCube extends AbstractSqlCube {
         }
         return null;
     }
+
+    private String isComplexTarget(String aliasKey) {
+        if (measures == null || measures.isEmpty()) {
+            return "";
+        }
+        for (Map.Entry<String, Measure> column : measures.entrySet()) {
+            Measure measureCol = column.getValue();
+            if (Objects.isNull(measureCol) || Objects.isNull(measureCol.getColumns())) {
+                continue;
+            }
+            for (Column col : measureCol.getColumns()) {
+                if (aliasKey.equalsIgnoreCase(col.getAlias())) {
+                    return measureCol.getCode();
+                }
+            }
+        }
+        return "";
+    }
+
 }
