@@ -348,7 +348,7 @@ public class EsCube extends AbstractSqlCube {
             if (Objects.isNull(measure) || measure.getColumns() == null) {
                 continue;
             }
-            Map<String, Object> measureTmpMap = genColumnMetricMap(measureKey);
+            Map<String, Object> measureTmpMap = genColumnMetricMap(measureKey, new ArrayList<>());
             if (Objects.isNull(measureTmpMap)) {
                 continue;
             }
@@ -357,11 +357,11 @@ public class EsCube extends AbstractSqlCube {
         return measureMapMap;
     }
 
-    private Map<String, Object> genColumnMetricMap(String measureAliKey) {
-        if (StringUtils.isBlank(measureAliKey)) {
+    private Map<String, Object> genColumnMetricMap(String measureAliasKey, List<String> measureKeyList) {
+        if (StringUtils.isBlank(measureAliasKey)) {
             return null;
         }
-        Measure measure = measures.get(measureAliKey);
+        Measure measure = measures.get(measureAliasKey);
         if (Objects.isNull(measure) || measure.getColumns() == null) {
             return null;
         }
@@ -370,9 +370,10 @@ public class EsCube extends AbstractSqlCube {
         for (Column column : measure.getColumns()) {
             String colName = column.getColumn();
             // 判断是否是复合指标
-            String newMeasureAliasKey = isComplexTarget(colName);
+            measureKeyList.add(measureAliasKey);
+            String newMeasureAliasKey = getComplexTargetKey(colName, measureKeyList);
             if (StringUtils.isNotBlank(newMeasureAliasKey)) {
-                Map<String, Object> measureTmpMap = genColumnMetricMap(newMeasureAliasKey);
+                Map<String, Object> measureTmpMap = genColumnMetricMap(newMeasureAliasKey, measureKeyList);
                 if (!Objects.isNull(measureTmpMap) && measureTmpMap.size() > 0) {
                     measureMapMap.putAll(measureTmpMap);
                 }
@@ -457,7 +458,7 @@ public class EsCube extends AbstractSqlCube {
         return null;
     }
 
-    private String isComplexTarget(String aliasKey) {
+    private String getComplexTargetKey(String colName, List<String> measureList) {
         if (measures == null || measures.isEmpty()) {
             return "";
         }
@@ -466,8 +467,11 @@ public class EsCube extends AbstractSqlCube {
             if (Objects.isNull(measureCol) || Objects.isNull(measureCol.getColumns())) {
                 continue;
             }
+            if (measureList.contains(measureCol.getCode())) {
+                continue;
+            }
             for (Column col : measureCol.getColumns()) {
-                if (aliasKey.equalsIgnoreCase(col.getAlias())) {
+                if (colName.equals(col.getAlias())) {
                     return measureCol.getCode();
                 }
             }
