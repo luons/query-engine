@@ -164,7 +164,7 @@ public class EsUtils {
 
     private static LinkedHashMap<String, Object> package2map(Object bucket) {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        if (bucket instanceof Map && ((Map<?, ?>) bucket).containsKey(KEY)) {
+        if (bucket instanceof Map && (((Map<?, ?>) bucket).containsKey(KEY) || ((Map<?, ?>) bucket).containsKey(DOC_COUNT))) {
             Object obj = ((Map<?, ?>) bucket).get(DOC_COUNT);
             map.put(VALUE, obj);
         }
