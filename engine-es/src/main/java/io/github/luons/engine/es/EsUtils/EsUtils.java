@@ -44,7 +44,7 @@ public class EsUtils {
             }
             if (aggMap.containsKey(VALUE)) {
                 Map<String, Object> dataMap = new HashMap<>();
-                dataMap.put(key, aggMap.get(VALUE));
+                dataMap.put(VALUE, aggMap.get(VALUE));
                 aggValueList.add(dataMap);
             }
             return aggValueList;
@@ -100,11 +100,6 @@ public class EsUtils {
         for (Map.Entry<String, Object> entry : bucketMap.entrySet()) {
             String entryKey = entry.getKey();
             Object entryValue = entry.getValue();
-            if (entryKey.equalsIgnoreCase(DOC_COUNT)) {
-                groupMap.put("count", entryValue);
-                isValue = true;
-                continue;
-            }
             if (!(entryValue instanceof Map)) {
                 continue;
             }
