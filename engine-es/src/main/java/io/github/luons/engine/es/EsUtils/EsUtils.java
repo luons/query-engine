@@ -100,6 +100,11 @@ public class EsUtils {
         for (Map.Entry<String, Object> entry : bucketMap.entrySet()) {
             String entryKey = entry.getKey();
             Object entryValue = entry.getValue();
+            if (((Map<?, ?>) entryValue).containsKey(DOC_COUNT) && !JacksonUtils.toJson(bucketMap).contains(BUCKETS)) {
+                groupMap.put("count", entryValue);
+                isValue = true;
+                continue;
+            }
             if (!(entryValue instanceof Map)) {
                 groupMap.put("count", entryValue);
                 isValue = true;
@@ -166,7 +171,7 @@ public class EsUtils {
 
     private static LinkedHashMap<String, Object> package2map(Object bucket) {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-        if (bucket instanceof Map && ((Map<?, ?>) bucket).containsKey(KEY)) {
+        if (bucket instanceof Map && (((Map<?, ?>) bucket).containsKey(KEY) || ((Map<?, ?>) bucket).containsKey(DOC_COUNT))) {
             Object obj = ((Map<?, ?>) bucket).get(DOC_COUNT);
             map.put(VALUE, obj);
         }
