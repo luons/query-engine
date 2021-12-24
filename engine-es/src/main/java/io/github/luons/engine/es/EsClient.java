@@ -73,13 +73,21 @@ public class EsClient extends Client {
     public List<Map<String, Object>> queryDsl(String indexName, String type, String dslQry, Map<String, String> context) throws Exception {
         Request<HttpPost> request = post(indexName, type, "_search");
         request.header(AUTHORIZATION, authorization);
+        Map<String, Object> execute = getEsExecute(request, dslQry);
+        debugLogMessage(request.getRequestUri().toString(), dslQry, execute.get("took"));
+        return getSearchResult(execute);
+    }
+
+    public List<Map<String, Object>> queryDslScroll(String indexName, String type, String dslQry, Map<String, String> context) throws Exception {
+        Request<HttpPost> request = post(indexName, type, "_search");
+        request.header(AUTHORIZATION, authorization);
         request.addParam("scroll", "1m");
         Map<String, Object> execute = getEsExecute(request, dslQry);
         debugLogMessage(request.getRequestUri().toString(), dslQry, execute.get("took"));
         String scrollId = (String) execute.get("_scroll_id");
         context.put(SCROLL_ID_KEY, scrollId);
         List<Map<String, Object>> result = getSearchResult(execute);
-        queryDslScroll(scrollId, result);
+        queryDslScroll(scrollId, result, new ArrayList<>());
         return result;
     }
 
@@ -105,7 +113,6 @@ public class EsClient extends Client {
     public List<Map<String, Object>> queryDslForAggs(String indexName, String type, String dslQry) throws Exception {
         Request<HttpPost> request = post(indexName, type, "_search");
         request.header(AUTHORIZATION, authorization);
-        // request.addParam("scroll", "1m");
         Map<String, Object> execute = getEsExecute(request, dslQry);
         debugLogMessage(request.getRequestUri().toString(), dslQry, execute.get("took"));
         if (!execute.containsKey("aggregations")) {
@@ -114,13 +121,17 @@ public class EsClient extends Client {
         return EsUtils.results((Map<String, Object>) execute.get("aggregations"));
     }
 
-    public List<Map<String, Object>> queryDslScroll(String scrollId, List<Map<String, Object>> scrollList) throws Exception {
+    private List<Map<String, Object>> queryDslScroll(String scrollId, List<Map<String, Object>> scrollList,
+                                                     List<String> scrollIdList) throws Exception {
+        if (StringUtils.isBlank(scrollId)) {
+            return new ArrayList<>();
+        }
+        scrollIdList.add(scrollId);
         Request<HttpPost> request = post("_search", "scroll");
         request.header(AUTHORIZATION, authorization);
         Map<String, Object> body = new HashMap<>();
         body.put("scroll", "1m");
         body.put("scroll_id", scrollId);
-
         Map<String, Object> execute = getEsExecute(request, body);
         debugLogMessage(request.getRequestUri().toString(), JacksonUtils.toJson(body), execute.get("took"));
         if (scrollList == null || scrollList.isEmpty()) {
@@ -133,8 +144,9 @@ public class EsClient extends Client {
         }
         scrollId = execute.get("_scroll_id").toString();
         if (StringUtils.isNotBlank(scrollId)) {
-            queryDslScroll(execute.get("_scroll_id").toString(), scrollList);
+            queryDslScroll(execute.get("_scroll_id").toString(), scrollList, scrollIdList);
         }
+        deleteScroll(scrollIdList);
         return scrollList;
     }
 
@@ -169,6 +181,18 @@ public class EsClient extends Client {
         Map<String, Object> execute = getEsExecute(request, null);
         debugLogMessage(request.getRequestUri().toString(), id, execute.get("took"));
         return getGetResult(execute);
+    }
+
+    public void deleteScroll(List<String> scrollIds) throws Exception {
+        if (scrollIds == null || scrollIds.size() == 0) {
+            return;
+        }
+        Request<HttpDelete> request = delete("/_search/scroll");
+        request.header(AUTHORIZATION, this.authorization);
+        Map<String, Object> queryObj = new HashMap<>();
+        queryObj.put("scroll_id", String.join((","), scrollIds));
+        Map<String, Object> execute = getEsExecute(request, queryObj);
+        getGetResult(execute);
     }
 
     private static void handleAggr(String aggrKey, Map<String, Object> aggrValue, Map<String, Object> row,

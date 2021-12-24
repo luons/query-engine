@@ -101,6 +101,8 @@ public class EsUtils {
             String entryKey = entry.getKey();
             Object entryValue = entry.getValue();
             if (!(entryValue instanceof Map)) {
+                groupMap.put("count", entryValue);
+                isValue = true;
                 continue;
             }
             if (((Map<?, ?>) entryValue).containsKey(VALUE)) {
