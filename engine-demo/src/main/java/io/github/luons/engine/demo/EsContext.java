@@ -14,12 +14,13 @@ public class EsContext {
 
     @Bean
     public AbstractCube EsBaseCube() {
-        String tableName = "stardb_monitor_mysql";
+        String tableName = "stardb_monitor_system";
         AbstractCube cube =
                 new EsCube(tableName)
                         .dimension(new Dimension("ip", new Column("ip", "ip")))
                         .dimension(new Dimension("port", "port"))
                         .dimension(new Dimension("@timestamp", new Column("@timestamp", "timestamp")))
+                        .measure(new Measure("system.cpu.total.pct", new Column[]{new Column("system.cpu.total.pct", "system.cpu.total.pct", "avg")}))
                         .measure(new Measure("bytes_received_sum", new Column[]{new Column("mysql.status.global.bytes_received", "mysql_status_global_bytes_received", "sum")}))
                         .measure(new Measure("bytes_received_dir", new Column[]{new Column("mysql_status_global_bytes_received", "mysql.status.global.bytes_received", "derivative")}))
                         .measure(new Measure("bytes_sent_avg", new Column[]{new Column("mysql.status.global.bytes_sent", "bytes_sent", "avg")}))
