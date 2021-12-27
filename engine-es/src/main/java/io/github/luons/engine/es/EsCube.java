@@ -202,7 +202,11 @@ public class EsCube extends AbstractSqlCube {
                 if (column == null || StringUtils.isBlank(column.getColumn())) {
                     continue;
                 }
-                subObject.add(filterToObject((SimpleFilter) filter, column));
+                Map<String, Object> data = filterToObject((SimpleFilter) filter, column);
+                if (data == null || data.size() == 0) {
+                    continue;
+                }
+                subObject.add(data);
             } else {
                 log.error("Unexpected filter object: " + filter.getClass());
             }
@@ -236,31 +240,29 @@ public class EsCube extends AbstractSqlCube {
         return null;
     }
 
-    private static Map<String, Object> getInMap(String columnName, Object value) {
+    private static Map<String, Object> getInMap(String columnName, Object values) {
         Map<String, Object> re = new HashMap<>();
         Map<String, Object> boolMap = new HashMap<>();
         List<Map<String, Object>> shouldMap = new LinkedList<>();
         boolMap.put("should", shouldMap);
         re.put("bool", boolMap);
-        if (!(value instanceof Iterable)) {
-            return re;
+        if (!(values instanceof Iterable)) {
+            return new HashMap<>();
         }
-        for (Object values : (Iterable<?>) value) {
+        for (Object value : (Iterable<?>) values) {
             Map<String, Object> sub = new HashMap<>();
-            if (values == null || !values.getClass().isArray()) {
-                continue;
-            }
-            for (Object _v : (Object[]) values) {
-                Map<String, Object> _vMap = new HashMap<>();
-                _vMap.put(columnName, _v);
-                sub.put("match_phrase", _vMap);
-                shouldMap.add(sub);
-            }
+            Map<String, Object> map = new HashMap<>();
+            map.put(columnName, value);
+            sub.put("match_phrase", map);
+            shouldMap.add(sub);
         }
         return re;
     }
 
     private static Map<String, Object> addNotMap(Map<String, Object> subMap) {
+        if (subMap == null || subMap.size() == 0) {
+            return new HashMap<>();
+        }
         Map<String, Object> re = new HashMap<>();
         re.put("not", subMap);
         return re;
