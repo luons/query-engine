@@ -100,14 +100,11 @@ public class EsUtils {
         for (Map.Entry<String, Object> entry : bucketMap.entrySet()) {
             String entryKey = entry.getKey();
             Object entryValue = entry.getValue();
-            if (((Map<?, ?>) entryValue).containsKey(DOC_COUNT) && !JacksonUtils.toJson(bucketMap).contains(BUCKETS)) {
+            if (!(entryValue instanceof Map) && entryKey.equals(DOC_COUNT)) {
                 groupMap.put("count", entryValue);
                 isValue = true;
                 continue;
-            }
-            if (!(entryValue instanceof Map)) {
-                groupMap.put("count", entryValue);
-                isValue = true;
+            } else if (!(entryValue instanceof Map)) {
                 continue;
             }
             if (((Map<?, ?>) entryValue).containsKey(VALUE)) {

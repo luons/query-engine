@@ -171,6 +171,8 @@ public class EsCube extends AbstractSqlCube {
             }
             dslObject.put("sort", sortMapList);
         }
+        // 默认设置单次查询最大2000条数据
+        dslObject.put("size", EsClient.QUERY_COUNT);
         return dslObject;
     }
 

@@ -29,6 +29,8 @@ public class EsClient extends Client {
 
     public static final String SCROLL_ID_KEY = "scrollId";
 
+    protected static final int QUERY_COUNT = 2000;
+
     protected EsClient(ClientFactory factory, URI baseUrl) {
         super(factory, baseUrl);
     }
@@ -70,7 +72,7 @@ public class EsClient extends Client {
         return fmtRecords;
     }
 
-    public List<Map<String, Object>> queryDsl(String indexName, String type, String dslQry, Map<String, String> context) throws Exception {
+    public List<Map<String, Object>> queryDslDefault(String indexName, String type, String dslQry) throws Exception {
         Request<HttpPost> request = post(indexName, type, "_search");
         request.header(AUTHORIZATION, authorization);
         Map<String, Object> execute = getEsExecute(request, dslQry);
@@ -78,7 +80,7 @@ public class EsClient extends Client {
         return getSearchResult(execute);
     }
 
-    public List<Map<String, Object>> queryDslScroll(String indexName, String type, String dslQry, Map<String, String> context) throws Exception {
+    public List<Map<String, Object>> queryDsl(String indexName, String type, String dslQry, Map<String, String> context) throws Exception {
         Request<HttpPost> request = post(indexName, type, "_search");
         request.header(AUTHORIZATION, authorization);
         request.addParam("scroll", "1m");
@@ -87,7 +89,11 @@ public class EsClient extends Client {
         String scrollId = (String) execute.get("_scroll_id");
         context.put(SCROLL_ID_KEY, scrollId);
         List<Map<String, Object>> result = getSearchResult(execute);
-        queryDslScroll(scrollId, result, new ArrayList<>());
+        // 判断是否需要scroll
+        if (result.size() >= (QUERY_COUNT / 2)) {
+            queryDslScroll(scrollId, result);
+            clearScroll();
+        }
         return result;
     }
 
@@ -121,12 +127,10 @@ public class EsClient extends Client {
         return EsUtils.results((Map<String, Object>) execute.get("aggregations"));
     }
 
-    private List<Map<String, Object>> queryDslScroll(String scrollId, List<Map<String, Object>> scrollList,
-                                                     List<String> scrollIdList) throws Exception {
+    private List<Map<String, Object>> queryDslScroll(String scrollId, List<Map<String, Object>> scrollList) throws Exception {
         if (StringUtils.isBlank(scrollId)) {
             return new ArrayList<>();
         }
-        scrollIdList.add(scrollId);
         Request<HttpPost> request = post("_search", "scroll");
         request.header(AUTHORIZATION, authorization);
         Map<String, Object> body = new HashMap<>();
@@ -138,15 +142,14 @@ public class EsClient extends Client {
             scrollList = new ArrayList<>();
         }
         List<Map<String, Object>> dataResult = getSearchResult(execute);
-        scrollList.addAll(dataResult);
         if (dataResult.isEmpty() || !execute.containsKey("_scroll_id")) {
             return scrollList;
         }
+        scrollList.addAll(dataResult);
         scrollId = execute.get("_scroll_id").toString();
         if (StringUtils.isNotBlank(scrollId)) {
-            queryDslScroll(execute.get("_scroll_id").toString(), scrollList, scrollIdList);
+            queryDslScroll(execute.get("_scroll_id").toString(), scrollList);
         }
-        deleteScroll(scrollIdList);
         return scrollList;
     }
 
@@ -183,15 +186,10 @@ public class EsClient extends Client {
         return getGetResult(execute);
     }
 
-    public void deleteScroll(List<String> scrollIds) throws Exception {
-        if (scrollIds == null || scrollIds.size() == 0) {
-            return;
-        }
-        Request<HttpDelete> request = delete("/_search/scroll");
+    public void clearScroll() throws Exception {
+        Request<HttpDelete> request = delete("/_search/scroll/_all");
         request.header(AUTHORIZATION, this.authorization);
-        Map<String, Object> queryObj = new HashMap<>();
-        queryObj.put("scroll_id", String.join((","), scrollIds));
-        Map<String, Object> execute = getEsExecute(request, queryObj);
+        Map<String, Object> execute = getEsExecute(request, null);
         getGetResult(execute);
     }
 
