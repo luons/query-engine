@@ -70,6 +70,11 @@ public class EsClientFactory extends ClientFactory {
                         return false;
                     }
                 }).build().newEsClientV2();
+
+        esClient.querySql("{\n" +
+                "  \"query\": \"SELECT ip,instance_id, count(*)  FROM stardb_monitor_mysql where ip='10.25.28.37' group by ip, instance_id\"\n" +
+                "}");
+
         esClient.queryDslForAggs("indexName-*", "", "{}");
     }
 }

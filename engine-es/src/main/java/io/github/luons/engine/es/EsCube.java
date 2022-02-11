@@ -82,7 +82,7 @@ public class EsCube extends AbstractSqlCube {
         Map<String, Object> param = new LinkedHashMap<>();
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(queryToSelectSql(query));
-        stringBuilder.append(" FROM \"").append(index).append("-*\"");
+        stringBuilder.append(" FROM \"").append(index);//.append("-*\"");
         String where = queryToWhereSql(query, param);
         if (where != null && where.length() > 0) {
             stringBuilder.append(where);
@@ -94,13 +94,6 @@ public class EsCube extends AbstractSqlCube {
         stringBuilder.append(" LIMIT 1000");
         String sql = stringBuilder.toString();
         log.info("queryDbBySql sql = {}", sql);
-        try {
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(("/tmp/" + System.currentTimeMillis()))));
-            bw.write(sql);
-            bw.close();
-        } catch (Exception e) {
-            log.error("queryDbBySql BufferedWriter is exception " + e);
-        }
         return esClient.querySql(sql);
     }
 

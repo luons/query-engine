@@ -18,6 +18,8 @@ import org.apache.http.entity.StringEntity;
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Slf4j
 @SuppressWarnings("unchecked")
@@ -44,12 +46,29 @@ public class EsClient extends Client {
         Request<HttpPost> request = post("/_sql");
         request.header(AUTHORIZATION, authorization);
         Map<String, Object> execute = getEsExecute(request, sqlQry);
-        debugLogMessage(request.getRequestUri().toString(), sqlQry, execute.get("took"));
-        return getSearchResult(execute);
+        debugLogMessage(request.getRequestUri().toString(), sqlQry, execute);
+        return getSearchResult(execute, true);
     }
 
     private static List<Map<String, Object>> getSearchResult(Map<String, Object> execute) {
+        return getSearchResult(execute, false);
+    }
+
+    private static List<Map<String, Object>> getSearchResult(Map<String, Object> execute, boolean isSql) {
         List<Map<String, Object>> fmtRecords = new LinkedList<>();
+        if (isSql) {
+            if (!execute.containsKey("columns") || !execute.containsKey("rows")) {
+                return fmtRecords;
+            }
+            List<String> columns = ((List<Map<String, Object>>) execute.get("columns")).stream()
+                    .filter(data -> data.containsKey("name")).map(data -> (String) data.get("name"))
+                    .collect(Collectors.toList());
+            return ((List<List<Object>>) execute.get("rows")).stream()
+                    .filter(rows -> !Objects.isNull(rows) && rows.size() == columns.size())
+                    .map(rows -> IntStream.range(0, columns.size()).boxed()
+                            .collect(Collectors.toMap(columns::get, rows::get, (a, b) -> b)))
+                    .collect(Collectors.toCollection(LinkedList::new));
+        }
         Map<String, Object> hitsMap = (Map<String, Object>) execute.get("hits");
         List<Map<String, Object>> hitsList = (List<Map<String, Object>>) hitsMap.get("hits");
         for (Map<String, Object> hitItem : hitsList) {
