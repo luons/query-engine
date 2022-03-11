@@ -9,10 +9,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+
 @Slf4j
 @Configuration
 public class EsClientConfig {
-
+    static final HashMap<String, Object> headers = new HashMap<>();
     @Value("${spring.es.url:http://localhost:9200}")
     private String esUrl;
 
@@ -24,20 +26,22 @@ public class EsClientConfig {
 
     @Bean
     public EsClient esClient() {
+        String auth = "Basic " + new String(Base64.encodeBase64((esUser + ":" + esPwd).getBytes()));
+        headers.put("Authorization", auth);
         return EsClientFactory.builder()
                 .baseUrl(esUrl)
                 .authorizationProvider(new AuthorizationProvider() {
                     @Override
                     public String getAuthorization() {
-                        String auth = new String(Base64.encodeBase64((esUser + ":" + esPwd).getBytes()));
-                        return "Basic " + auth;
+                        return auth;
                     }
-
                     @Override
                     public boolean refreshToken() {
                         return false;
                     }
-                }).build().newEsClientV2();
+                })
+                .headers(headers)
+                .build().newEsClientV2();
     }
 }
 

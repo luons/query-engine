@@ -25,7 +25,7 @@ import java.util.stream.IntStream;
 @SuppressWarnings("unchecked")
 public class EsClient extends Client {
 
-    private String authorization;
+    private HashMap<String, Object> headers;
 
     public static final String AUTHORIZATION = "Authorization";
 
@@ -37,14 +37,18 @@ public class EsClient extends Client {
         super(factory, baseUrl);
     }
 
-    protected EsClient(ClientFactory factory, URI baseUrl, String authorization) {
+    protected EsClient(ClientFactory factory, URI baseUrl, HashMap<String, Object> headers) {
         super(factory, baseUrl);
-        this.authorization = authorization;
+        this.headers = headers;
     }
 
     public List<Map<String, Object>> querySql(String sqlQry) throws Exception {
         Request<HttpPost> request = post("/_sql");
-        request.header(AUTHORIZATION, authorization);
+        if (headers != null) {
+            for (String key : headers.keySet()) {
+                request.header(key, headers.get(key));
+            }
+        }
         Map<String, Object> execute = getEsExecute(request, sqlQry);
         debugLogMessage(request.getRequestUri().toString(), sqlQry, execute);
         return getSearchResult(execute, true);
@@ -93,7 +97,11 @@ public class EsClient extends Client {
 
     public List<Map<String, Object>> queryDslDefault(String indexName, String type, String dslQry) throws Exception {
         Request<HttpPost> request = post(indexName, type, "_search");
-        request.header(AUTHORIZATION, authorization);
+        if (headers != null) {
+            for (String key : headers.keySet()) {
+                request.header(key, headers.get(key));
+            }
+        }
         Map<String, Object> execute = getEsExecute(request, dslQry);
         debugLogMessage(request.getRequestUri().toString(), dslQry, execute.get("took"));
         return getSearchResult(execute);
@@ -101,7 +109,11 @@ public class EsClient extends Client {
 
     public List<Map<String, Object>> queryDsl(String indexName, String type, String dslQry, Map<String, String> context) throws Exception {
         Request<HttpPost> request = post(indexName, type, "_search");
-        request.header(AUTHORIZATION, authorization);
+        if (headers != null) {
+            for (String key : headers.keySet()) {
+                request.header(key, headers.get(key));
+            }
+        }
         request.addParam("scroll", "1m");
         Map<String, Object> execute = getEsExecute(request, dslQry);
         debugLogMessage(request.getRequestUri().toString(), dslQry, execute.get("took"));
@@ -111,8 +123,8 @@ public class EsClient extends Client {
         // 判断是否需要scroll
         if (result.size() >= (QUERY_COUNT / 2)) {
             queryDslScroll(scrollId, result);
-            clearScroll();
         }
+        clearScroll();
         return result;
     }
 
@@ -121,7 +133,11 @@ public class EsClient extends Client {
             queryDsl(indexName, type, dslQry, new HashMap<>());
         }
         Request<HttpPost> request = post(indexName, type, "_search");
-        request.header(AUTHORIZATION, authorization);
+        if (headers != null) {
+            for (String key : headers.keySet()) {
+                request.header(key, headers.get(key));
+            }
+        }
         Map<String, Object> execute = getEsExecute(request, dslQry);
         debugLogMessage(request.getRequestUri().toString(), dslQry, execute.get("took"));
         return getSearchResult(execute);
@@ -129,7 +145,11 @@ public class EsClient extends Client {
 
     public long countDsl(String indexName, String type, String dslQry) throws Exception {
         Request<HttpPost> request = post(indexName, type, "_count");
-        request.header(AUTHORIZATION, authorization);
+        if (headers != null) {
+            for (String key : headers.keySet()) {
+                request.header(key, headers.get(key));
+            }
+        }
         Map<String, Object> execute = getEsExecute(request, dslQry);
         debugLogMessage(request.getRequestUri().toString(), dslQry, execute.get("took"));
         return ((Number) execute.get("count")).longValue();
@@ -137,7 +157,11 @@ public class EsClient extends Client {
 
     public List<Map<String, Object>> queryDslForAggs(String indexName, String type, String dslQry) throws Exception {
         Request<HttpPost> request = post(indexName, type, "_search");
-        request.header(AUTHORIZATION, authorization);
+        if (headers != null) {
+            for (String key : headers.keySet()) {
+                request.header(key, headers.get(key));
+            }
+        }
         Map<String, Object> execute = getEsExecute(request, dslQry);
         debugLogMessage(request.getRequestUri().toString(), dslQry, execute.get("took"));
         if (!execute.containsKey("aggregations")) {
@@ -151,7 +175,11 @@ public class EsClient extends Client {
             return new ArrayList<>();
         }
         Request<HttpPost> request = post("_search", "scroll");
-        request.header(AUTHORIZATION, authorization);
+        if (headers != null) {
+            for (String key : headers.keySet()) {
+                request.header(key, headers.get(key));
+            }
+        }
         Map<String, Object> body = new HashMap<>();
         body.put("scroll", "1m");
         body.put("scroll_id", scrollId);
@@ -179,7 +207,11 @@ public class EsClient extends Client {
         } else {
             request = put(indexName, type, id);
         }
-        request.header(AUTHORIZATION, this.authorization);
+        if (this.headers != null) {
+            for (String key : this.headers.keySet()) {
+                request.header(key, this.headers.get(key));
+            }
+        }
         Map<String, Object> execute = getEsExecute(request, object);
         debugLogMessage(request.getRequestUri().toString(), id, execute.get("took"));
     }
@@ -190,7 +222,11 @@ public class EsClient extends Client {
 
     public Map<String, Object> getObject(String indexName, String type, String id) throws Exception {
         Request<HttpGet> request = get(indexName, type, id);
-        request.header(AUTHORIZATION, this.authorization);
+        if (this.headers != null) {
+            for (String key : this.headers.keySet()) {
+                request.header(key, this.headers.get(key));
+            }
+        }
 
         Map<String, Object> execute = getEsExecute(request, null);
         debugLogMessage(request.getRequestUri().toString(), id, execute.get("took"));
@@ -199,7 +235,11 @@ public class EsClient extends Client {
 
     public Map<String, Object> deleteObject(String indexName, String type, String id) throws Exception {
         Request<HttpDelete> request = delete(indexName, type, id);
-        request.header(AUTHORIZATION, this.authorization);
+        if (this.headers != null) {
+            for (String key : this.headers.keySet()) {
+                request.header(key, this.headers.get(key));
+            }
+        }
         Map<String, Object> execute = getEsExecute(request, null);
         debugLogMessage(request.getRequestUri().toString(), id, execute.get("took"));
         return getGetResult(execute);
@@ -207,7 +247,11 @@ public class EsClient extends Client {
 
     public void clearScroll() throws Exception {
         Request<HttpDelete> request = delete("/_search/scroll/_all");
-        request.header(AUTHORIZATION, this.authorization);
+        if (this.headers != null) {
+            for (String key : this.headers.keySet()) {
+                request.header(key, this.headers.get(key));
+            }
+        }
         Map<String, Object> execute = getEsExecute(request, null);
         getGetResult(execute);
     }
