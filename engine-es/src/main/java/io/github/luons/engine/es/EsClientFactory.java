@@ -8,12 +8,13 @@ import lombok.Setter;
 import org.apache.commons.codec.binary.Base64;
 
 import java.net.URI;
+import java.util.HashMap;
 
 @Getter
 @Setter
 public class EsClientFactory extends ClientFactory {
 
-    private String authorization;
+    private HashMap<String, Object> headers;
 
     private final URI baseUrl;
 
@@ -31,31 +32,28 @@ public class EsClientFactory extends ClientFactory {
     }
 
     public EsClient newEsClientV2() {
-        return new EsClient(this, baseUrl, authorization);
+        return new EsClient(this, baseUrl, headers);
     }
 
     public static class Builder extends ClientFactory.Builder<Builder> {
+        private HashMap<String, Object> headers;
 
-        private String authorization;
-
-        public Builder authorization(String authorization) {
-            this.authorization = authorization;
+        public Builder headers(HashMap<String, Object> headers) {
+            this.headers = headers;
             return this;
         }
-
         public EsClientFactory build() {
             Preconditions.checkState((baseUrl != null), ("Base URL is required"));
             maxConnections(1000).maxConnectionsPerRoute(1000).connectTimeout(1000L);
-            //EsClientFactory esClientFactory = new EsClientFactory(this, baseUrl);
             EsClientFactory esClientFactory =
                     new EsClientFactory(this, URI.create(baseUrl.toString()));
-            esClientFactory.setAuthorization(authorization);
+//            esClientFactory.setAuthorization(authorization);
+            esClientFactory.setHeaders(headers);
             return esClientFactory;
         }
     }
 
     public static void main(String[] args) throws Exception {
-
         EsClient esClient = EsClientFactory.builder()
                 .baseUrl("http://localhost:9200/")
                 .authorizationProvider(new AuthorizationProvider() {
